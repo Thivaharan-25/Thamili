@@ -1,0 +1,49 @@
+{
+  "cli": {
+    "version": ">= 7.8.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_VERCEL_API_URL": "https://1st-project-g992.vercel.app",
+        "INTERNAL_API_SECRET": "bee28e5196978bb50e0042ff0cdce4de3f624c9f542bf98dfc448680b04d8d3f"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_VERCEL_API_URL": "https://1st-project-g992.vercel.app",
+        "INTERNAL_API_SECRET": "bee28e5196978bb50e0042ff0cdce4de3f624c9f542bf98dfc448680b04d8d3f"
+      }
+    },
+    "preview-bundle": {
+      "extends": "preview",
+      "android": {
+        "buildType": "app-bundle"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_VERCEL_API_URL": "https://1st-project-g992.vercel.app",
+        "INTERNAL_API_SECRET": "bee28e5196978bb50e0042ff0cdce4de3f624c9f542bf98dfc448680b04d8d3f"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

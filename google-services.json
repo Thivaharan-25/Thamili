@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "93022375327",
+    "project_id": "thamili-39627",
+    "storage_bucket": "thamili-39627.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:93022375327:android:004a528247f0bd3bafc1aa",
+        "android_client_info": {
+          "package_name": "com.thamili.thamili"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCliCH1I-ETsLknH_dPGuX89wggaSc0LXA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

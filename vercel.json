@@ -1,0 +1,8 @@
+{
+    "rewrites": [
+        {
+            "source": "/product/:productId",
+            "destination": "/api/share?productId=:productId"
+        }
+    ]
+}

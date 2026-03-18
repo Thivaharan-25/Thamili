@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.thamili.app.preview",
+            "sha256_cert_fingerprints": [
+                "52:F5:EC:75:CE:E6:9C:27:A0:06:54:25:6D:56:75:CC:01:6D:2D:9A:7F:1B:F0:28:AD:7B:C0:48:6A:9E:80:DC"
+            ]
+        }
+    }
+]

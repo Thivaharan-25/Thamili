@@ -1,0 +1,68 @@
+src/components/DeliveryAddressForm.tsx(80,30): error TS2339: Property 'label' does not exist on type '{ container: { backgroundColor: string; borderRadius: number; padding: number; shadowColor: string; shadowOffset: { width: number; height: number; }; shadowOpacity: number; shadowRadius: number; elevation: number; }; title: { ...; }; row: { ...; }; halfWidth: { ...; }; textArea: { ...; }; }'.
+src/components/index.ts(39,10): error TS2305: Module '"./Toast"' has no exported member 'default'.
+src/components/index.ts(50,10): error TS2305: Module '"./ToastProvider"' has no exported member 'ToastProvider'.
+src/components/ProductRecommendations.tsx(76,13): error TS2322: Type '{ product: Product; country: Country; onPress: () => void; onAddToCart: () => void; style: { marginRight: number; width: number; }; }' is not assignable to type 'IntrinsicAttributes & ProductCardProps'.
+  Property 'style' does not exist on type 'IntrinsicAttributes & ProductCardProps'.
+src/components/ProgressiveImage.tsx(111,23): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: ViewProps): View', gave the following error.
+    Type '{ width: string; height: string; justifyContent: string; alignItems: string; }' is not assignable to type 'ViewStyle | Falsy | RegisteredStyle<ViewStyle> | RecursiveArray<ViewStyle | Falsy | RegisteredStyle<ViewStyle>> | readonly (ViewStyle | ... 1 more ... | RegisteredStyle<...>)[]'.
+      Type '{ width: string; height: string; justifyContent: string; alignItems: string; }' is not assignable to type 'ViewStyle'.
+        Types of property 'alignItems' are incompatible.
+          Type 'string' is not assignable to type 'FlexAlignType | undefined'.
+  Overload 2 of 2, '(props: ViewProps, context: any): View', gave the following error.
+    Type '{ width: string; height: string; justifyContent: string; alignItems: string; }' is not assignable to type 'ViewStyle | Falsy | RegisteredStyle<ViewStyle> | RecursiveArray<ViewStyle | Falsy | RegisteredStyle<ViewStyle>> | readonly (ViewStyle | ... 1 more ... | RegisteredStyle<...>)[]'.
+      Type '{ width: string; height: string; justifyContent: string; alignItems: string; }' is not assignable to type 'ViewStyle'.
+        Types of property 'alignItems' are incompatible.
+          Type 'string' is not assignable to type 'FlexAlignType | undefined'.
+src/components/ProgressiveImage.tsx(122,45): error TS2322: Type 'string' is not assignable to type 'number'.
+src/components/ProgressiveImage.tsx(126,25): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: ViewProps): View', gave the following error.
+    Type '{ width: string; height: string; justifyContent: string; alignItems: string; }' is not assignable to type 'ViewStyle | Falsy | RegisteredStyle<ViewStyle> | RecursiveArray<ViewStyle | Falsy | RegisteredStyle<ViewStyle>> | readonly (ViewStyle | ... 1 more ... | RegisteredStyle<...>)[]'.
+      Type '{ width: string; height: string; justifyContent: string; alignItems: string; }' is not assignable to type 'ViewStyle'.
+        Types of property 'alignItems' are incompatible.
+          Type 'string' is not assignable to type 'FlexAlignType | undefined'.
+  Overload 2 of 2, '(props: ViewProps, context: any): View', gave the following error.
+    Type '{ width: string; height: string; justifyContent: string; alignItems: string; }' is not assignable to type 'ViewStyle | Falsy | RegisteredStyle<ViewStyle> | RecursiveArray<ViewStyle | Falsy | RegisteredStyle<ViewStyle>> | readonly (ViewStyle | ... 1 more ... | RegisteredStyle<...>)[]'.
+      Type '{ width: string; height: string; justifyContent: string; alignItems: string; }' is not assignable to type 'ViewStyle'.
+        Types of property 'alignItems' are incompatible.
+          Type 'string' is not assignable to type 'FlexAlignType | undefined'.
+src/components/ProgressiveImage.tsx(133,25): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: ViewProps): View', gave the following error.
+    Type '{ width: string; height: string; justifyContent: string; alignItems: string; }' is not assignable to type 'ViewStyle | Falsy | RegisteredStyle<ViewStyle> | RecursiveArray<ViewStyle | Falsy | RegisteredStyle<ViewStyle>> | readonly (ViewStyle | ... 1 more ... | RegisteredStyle<...>)[]'.
+      Type '{ width: string; height: string; justifyContent: string; alignItems: string; }' is not assignable to type 'ViewStyle'.
+        Types of property 'alignItems' are incompatible.
+          Type 'string' is not assignable to type 'FlexAlignType | undefined'.
+  Overload 2 of 2, '(props: ViewProps, context: any): View', gave the following error.
+    Type '{ width: string; height: string; justifyContent: string; alignItems: string; }' is not assignable to type 'ViewStyle | Falsy | RegisteredStyle<ViewStyle> | RecursiveArray<ViewStyle | Falsy | RegisteredStyle<ViewStyle>> | readonly (ViewStyle | ... 1 more ... | RegisteredStyle<...>)[]'.
+      Type '{ width: string; height: string; justifyContent: string; alignItems: string; }' is not assignable to type 'ViewStyle'.
+        Types of property 'alignItems' are incompatible.
+          Type 'string' is not assignable to type 'FlexAlignType | undefined'.
+src/components/RecentlyViewedProducts.tsx(65,13): error TS2322: Type '{ product: Product; country: Country; onPress: () => void; style: { marginRight: number; width: number; }; }' is not assignable to type 'IntrinsicAttributes & ProductCardProps'.
+  Property 'style' does not exist on type 'IntrinsicAttributes & ProductCardProps'.
+src/screens/admin/NotificationTemplatesScreen.tsx(121,25): error TS2774: This condition will always return true since this function is always defined. Did you mean to call it instead?
+src/screens/admin/NotificationTemplatesScreen.tsx(122,26): error TS2774: This condition will always return true since this function is always defined. Did you mean to call it instead?
+src/screens/admin/TestNotificationScreen.tsx(74,21): error TS2774: This condition will always return true since this function is always defined. Did you mean to call it instead?
+src/screens/admin/TestNotificationScreen.tsx(75,22): error TS2774: This condition will always return true since this function is always defined. Did you mean to call it instead?
+src/screens/customer/CartScreen.tsx(251,55): error TS2345: Argument of type '{ screen: string; }' is not assignable to parameter of type 'undefined'.
+src/screens/customer/OrderConfirmationScreen.tsx(106,54): error TS2345: Argument of type '{ screen: string; }' is not assignable to parameter of type 'undefined'.
+src/screens/customer/OrderConfirmationScreen.tsx(112,54): error TS2345: Argument of type '{ screen: string; }' is not assignable to parameter of type 'undefined'.
+src/screens/customer/ProductDetailsScreen.tsx(368,62): error TS2345: Argument of type '{ screen: string; }' is not assignable to parameter of type 'undefined'.
+src/services/orderService.ts(201,15): error TS2339: Property 'data' does not exist on type 'unknown'.
+src/services/orderService.ts(201,30): error TS2339: Property 'error' does not exist on type 'unknown'.
+src/services/productService.ts(51,15): error TS2339: Property 'data' does not exist on type 'unknown'.
+src/services/productService.ts(51,21): error TS2339: Property 'error' does not exist on type 'unknown'.
+src/services/productService.ts(99,15): error TS2339: Property 'data' does not exist on type 'unknown'.
+src/services/productService.ts(99,21): error TS2339: Property 'error' does not exist on type 'unknown'.
+src/store/savedForLaterStore.ts(51,17): error TS2339: Property 'saveItems' does not exist on type 'SavedForLaterState'.
+src/store/savedForLaterStore.ts(58,17): error TS2339: Property 'saveItems' does not exist on type 'SavedForLaterState'.
+src/utils/conflictResolution.ts(44,7): error TS2322: Type 'Record<string, any>' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'Record<string, any>'.
+src/utils/conflictResolution.ts(44,27): error TS2345: Argument of type 'T' is not assignable to parameter of type 'Record<string, any>'.
+supabase/functions/create-payment-intent/index.ts(1,23): error TS2307: Cannot find module 'https://deno.land/std@0.224.0/http/server.ts' or its corresponding type declarations.
+supabase/functions/create-payment-intent/index.ts(2,20): error TS2307: Cannot find module 'https://esm.sh/stripe@16?target=deno&no-check' or its corresponding type declarations.
+supabase/functions/create-payment-intent/index.ts(4,27): error TS2304: Cannot find name 'Deno'.
+vercel/functions/create-payment-intent.ts(16,52): error TS2307: Cannot find module '@vercel/node' or its corresponding type declarations.
+vercel/functions/create-payment-intent.ts(17,20): error TS2307: Cannot find module 'stripe' or its corresponding type declarations.
+vercel/functions/stripe-webhook.ts(23,52): error TS2307: Cannot find module '@vercel/node' or its corresponding type declarations.
+vercel/functions/stripe-webhook.ts(24,20): error TS2307: Cannot find module 'stripe' or its corresponding type declarations.
+vercel/functions/whatsapp-notification.ts(16,52): error TS2307: Cannot find module '@vercel/node' or its corresponding type declarations.

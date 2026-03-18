@@ -1,0 +1,117 @@
+{
+  "expo": {
+    "name": "Thamili",
+    "slug": "thamili",
+    "version": "1.0.0",
+    "jsEngine": "hermes",
+    "orientation": "default",
+    "scheme": "thamili",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "updates": {
+      "enabled": true,
+      "fallbackToCacheTimeout": 0,
+      "checkAutomatically": "NEVER",
+      "requestHeaders": {}
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.thamili.thamili",
+      "googleServicesFile": "./google-services.json",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.VIBRATE",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "1st-project-g992.vercel.app",
+              "pathPrefix": "/product"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        },
+        {
+          "action": "VIEW",
+          "data": {
+            "scheme": "thamili",
+            "host": "product"
+          },
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
+      "edgeToEdgeEnabled": false,
+      "navigationBar": {
+        "backgroundColor": "#ffffff",
+        "barStyle": "dark-content"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "notification": {
+      "icon": "./assets/logo.png",
+      "color": "#001B3D"
+    },
+    "plugins": [
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "",
+          "enableGooglePay": false
+        }
+      ],
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app needs access to your photos to let you upload product images."
+        }
+      ],
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsDownloadToken": "YOUR_MAPBOX_SECRET_TOKEN"
+        }
+      ],
+      "expo-notifications"
+    ],
+    "owner": "dabishanth",
+    "extra": {
+      "eas": {
+        "projectId": "b71e784c-ccd0-4d08-b1d4-ad3b379387d4"
+      }
+    }
+  }
+}
