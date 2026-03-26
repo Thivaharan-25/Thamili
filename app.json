@@ -107,10 +107,10 @@
       ],
       "expo-notifications"
     ],
-    "owner": "dabishanth",
+    "owner": "thivaharan",
     "extra": {
       "eas": {
-        "projectId": "b71e784c-ccd0-4d08-b1d4-ad3b379387d4"
+        "projectId": "d167fb0d-7f14-4556-ad9d-51cbbe3252f5"
       }
     }
   }
