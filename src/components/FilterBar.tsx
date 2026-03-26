@@ -325,4 +325,4 @@ const styles = StyleSheet.create({
 // Set displayName for better debugging
 FilterBar.displayName = 'FilterBar';
 
-export default FilterBar;
+export default React.memo(FilterBar);

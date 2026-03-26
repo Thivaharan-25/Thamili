@@ -37,6 +37,7 @@ interface ProgressiveImageProps {
   lazy?: boolean; // Enable lazy loading
   blurRadius?: number; // Blur radius for blur-up effect
   errorFallback?: React.ReactNode; // Custom error fallback
+  loadingTimeout?: number; // Safety timeout in ms (default: 8000)
 }
 
 const ProgressiveImage: React.FC<ProgressiveImageProps> = ({
@@ -49,6 +50,7 @@ const ProgressiveImage: React.FC<ProgressiveImageProps> = ({
   lazy = false,
   blurRadius = 10,
   errorFallback,
+  loadingTimeout = 8000,
   onLoadEnd,
   onError,
   ...props
@@ -86,22 +88,22 @@ const ProgressiveImage: React.FC<ProgressiveImageProps> = ({
   }, [lazy, shouldLoad]);
 
   // Safety Timeout: If loading takes too long, clear the placeholder anyway.
-  // Kept short (4 s) to avoid skeleton lingering; only logged in __DEV__.
+  // Configurable via loadingTimeout prop (default 8s). Skipped for cached images
+  // which use memory-disk policy and should load near-instantly.
   useEffect(() => {
     if (loading && shouldLoad) {
       const safetyTimer = setTimeout(() => {
         if (loading) {
           if (__DEV__) {
-            // Only log the first occurrence per URI to avoid console spam
             console.warn(`⏳ [ProgressiveImage] Slow image: ${sourceUri ? sourceUri.split('/').pop() : 'static resource'}`);
           }
           setLoading(false);
           opacity.value = withTiming(1, { duration: 300 });
         }
-      }, 4000); // 4 seconds — reduced from 10s
+      }, loadingTimeout);
       return () => clearTimeout(safetyTimer);
     }
-  }, [loading, shouldLoad, sourceUri]);
+  }, [loading, shouldLoad, sourceUri, loadingTimeout]);
 
   const handleLoadSuccess = () => {
     if (!loading) return;

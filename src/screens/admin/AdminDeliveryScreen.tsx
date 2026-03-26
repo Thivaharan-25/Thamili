@@ -503,6 +503,16 @@ const AdminDeliveryScreen = () => {
                   ? t('delivery.noMatch')
                   : t('delivery.noSchedules')
               }
+              suggestions={
+                filteredSchedules.length === 0 && schedules.length > 0
+                  ? [
+                      t('delivery.matchSuggestion1', { defaultValue: 'Try changing the filter criteria' }),
+                      t('delivery.matchSuggestion2', { defaultValue: 'Clear all filters to see all deliveries' }),
+                    ]
+                  : [
+                      t('delivery.scheduleSuggestion1', { defaultValue: 'Assign orders to delivery partners to create schedules' }),
+                    ]
+              }
             />
           )
         }

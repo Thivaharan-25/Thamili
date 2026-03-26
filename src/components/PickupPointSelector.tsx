@@ -192,5 +192,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PickupPointSelector;
+export default React.memo(PickupPointSelector);
 

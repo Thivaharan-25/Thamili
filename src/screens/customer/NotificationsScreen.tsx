@@ -131,7 +131,11 @@ const NotificationsScreen = () => {
         <EmptyState
           icon="bell-off"
           title="No notifications"
-          message="You're all caught up!"
+          message="You're all caught up! We'll notify you about order updates and special offers."
+          suggestions={[
+            'Order updates will appear here',
+            'Enable push notifications in settings for real-time alerts',
+          ]}
         />
       ) : (
         <>

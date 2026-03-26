@@ -683,7 +683,9 @@
       "stopDeliveryTitle": "⛔ STOP DELIVERY",
       "stopDeliveryMessage": "Order #{{orderId}} has been CANCELED. Do not deliver!",
       "deliveryFailedTitle": "⚠️ Delivery Failed",
-      "deliveryFailedMessage": "Delivery failed for Order #{{orderId}}. Please check with the partner."
+      "deliveryFailedMessage": "Delivery failed for Order #{{orderId}}. Please check with the partner.",
+      "welcomeTitle": "Vanakam! Welcome back to Thamili ✅",
+      "welcomeMessage": "You have successfully logged in to your account."
     }
   },
   "paymentStatus": {
@@ -866,36 +868,6 @@
     "completeOrderAmount": "Complete Order • {{amount}}",
     "orderFailed": "Order Failed",
     "fillRequiredFields": "Please fill in all required fields correctly."
-  },
-  "admin": {
-    "notifications": {
-      "orderConfirmedTitle": "Order Confirmed ✅",
-      "orderConfirmedMessage": "Your order #{{orderId}} has been confirmed and is being prepared.",
-      "newOrderTitle": "New Order Received 🛒",
-      "newOrderMessage": "{{customer}} placed a new order #{{orderId}}.",
-      "orderCanceledTitle": "Order Canceled ❌",
-      "orderCanceledMessage": "Order #{{orderId}} has been canceled.",
-      "partnerAssignedTitle": "Delivery Partner Assigned 🚚",
-      "partnerAssignedMessage": "A delivery partner has been assigned to your order #{{orderId}}.",
-      "orderAcceptedTitle": "Order Accepted ✅",
-      "orderAcceptedMessage": "Your order #{{orderId}} has been accepted and will be delivered soon.",
-      "onTheWayTitle": "Order On The Way 🚚",
-      "onTheWayMessage": "Your order #{{orderId}} is out for delivery. Expect it soon!",
-      "readyForPickupTitle": "Ready for Pickup 🛍️",
-      "readyForPickupMessage": "Your order #{{orderId}} is ready for pickup at the store.",
-      "orderDeliveredTitle": "Order Delivered 🎉",
-      "orderDeliveredMessage": "Your order #{{orderId}} has been delivered. Enjoy!",
-      "newTaskTitle": "New Delivery Task 📦",
-      "newTaskMessage": "You have been assigned a new delivery for order #{{orderId}}.",
-      "stopDeliveryTitle": "Delivery Canceled ❌",
-      "stopDeliveryMessage": "The delivery for order #{{orderId}} has been canceled.",
-      "deliveryFailedTitle": "Delivery Failed ⚠️",
-      "deliveryFailedMessage": "Delivery for order #{{orderId}} was unsuccessful. Please follow up.",
-      "lowStockTitle": "Low Stock Alert ⚠️",
-      "lowStockMessage": "{{product}} is running low on stock ({{count}} remaining).",
-      "welcomeTitle": "Vanakam! Welcome back to Thamili ✅",
-      "welcomeMessage": "You have successfully logged in to your account."
-    }
   },
   "orderConfirmation": {
     "title": "Order Confirmation",

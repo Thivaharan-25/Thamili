@@ -1,4 +1,5 @@
 export { default as LoadingScreen } from './LoadingScreen';
+export { default as BrandedSplash } from './BrandedSplash';
 export { default as LoadingOverlay } from './LoadingOverlay';
 export { default as ErrorBoundary } from './ErrorBoundary';
 export { default as ErrorMessage } from './ErrorMessage';

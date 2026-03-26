@@ -39,7 +39,7 @@ class OfflineQueue {
         }
       }
     } catch (error) {
-      console.error('Error initializing offline queue:', error);
+      if (__DEV__) console.error('Error initializing offline queue:', error);
     }
   }
 
@@ -81,7 +81,7 @@ class OfflineQueue {
   }
 
   /**
-   * Process the queue
+   * Process the queue — batches saves to avoid O(n²) + repeated AsyncStorage writes
    */
   async processQueue(executor?: (mutation: QueuedMutation) => Promise<any>): Promise<void> {
     if (this.processing) return;
@@ -92,35 +92,44 @@ class OfflineQueue {
 
     // Process mutations in order (oldest first)
     const sortedQueue = [...this.queue].sort((a, b) => a.timestamp - b.timestamp);
+    const successfulIds = new Set<string>();
+    const failedIds = new Set<string>();
+    let dirty = false;
 
     for (const mutation of sortedQueue) {
       try {
         if (executor) {
           await executor(mutation);
         }
-        // Remove successful mutation
-        this.queue = this.queue.filter((m) => m.id !== mutation.id);
-        await this.saveQueue();
-        this.notifyListeners();
+        successfulIds.add(mutation.id);
+        dirty = true;
       } catch (error) {
         // Increment retries
         mutation.retries++;
-        
+
         if (mutation.retries >= mutation.maxRetries) {
-          // Remove failed mutation after max retries
-          console.error(`Mutation ${mutation.id} failed after ${mutation.maxRetries} retries:`, error);
-          this.queue = this.queue.filter((m) => m.id !== mutation.id);
-          await this.saveQueue();
-          this.notifyListeners();
+          if (__DEV__) console.error(`Mutation ${mutation.id} failed after ${mutation.maxRetries} retries:`, error);
+          failedIds.add(mutation.id);
+          dirty = true;
         } else {
-          // Update mutation in queue
+          // Update mutation in queue with incremented retry count
           const index = this.queue.findIndex((m) => m.id === mutation.id);
           if (index !== -1) {
             this.queue[index] = mutation;
-            await this.saveQueue();
+            dirty = true;
           }
         }
       }
+    }
+
+    // Single batch removal + save at the end
+    if (dirty) {
+      const removeIds = new Set([...successfulIds, ...failedIds]);
+      if (removeIds.size > 0) {
+        this.queue = this.queue.filter((m) => !removeIds.has(m.id));
+      }
+      await this.saveQueue();
+      this.notifyListeners();
     }
 
     this.processing = false;
@@ -180,7 +189,7 @@ class OfflineQueue {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(this.queue));
     } catch (error) {
-      console.error('Error saving offline queue:', error);
+      if (__DEV__) console.error('Error saving offline queue:', error);
     }
   }
 

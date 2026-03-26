@@ -1,5 +1,5 @@
-import React, { useEffect, useState, forwardRef } from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import React, { useEffect, useRef, forwardRef } from 'react';
+import { View, StyleSheet, ViewStyle, Animated } from 'react-native';
 import { cssInterop } from 'react-native-css-interop';
 
 // Safe import of reanimated components
@@ -77,17 +77,29 @@ const SkeletonLoaderFallback = forwardRef<View, SkeletonLoaderProps>(({
   borderRadius,
   style,
 }, ref) => {
-  const [opacity, setOpacity] = useState(0.3);
+  const animatedOpacity = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setOpacity((prev) => (prev === 0.3 ? 0.7 : 0.3));
-    }, 750);
-    return () => clearInterval(interval);
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedOpacity, {
+          toValue: 0.7,
+          duration: 750,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedOpacity, {
+          toValue: 0.3,
+          duration: 750,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
   }, []);
 
   return (
-    <View
+    <Animated.View
       ref={ref}
       style={[
         styles.skeleton,
@@ -95,7 +107,7 @@ const SkeletonLoaderFallback = forwardRef<View, SkeletonLoaderProps>(({
           width: width as any,
           height: height as any,
           borderRadius: borderRadius as any,
-          opacity
+          opacity: animatedOpacity,
         },
         style,
       ]}

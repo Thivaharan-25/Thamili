@@ -11,6 +11,7 @@ import { orderService } from '../../services/orderService';
 import { pickupPointService } from '../../services';
 import { productService } from '../../services/productService';
 import { AppHeader, OrderReceipt, Button, LoadingScreen, ErrorMessage, SuccessCelebration } from '../../components';
+import { colors } from '../../theme';
 import { COUNTRIES } from '../../constants';
 import type { Country } from '../../constants';
 import type { OrderItem } from '../../types';
@@ -141,14 +142,14 @@ const OrderConfirmationScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background.default,
   },
   content: {
     flex: 1,
   },
   footer: {
     // padding will be set dynamically
-    backgroundColor: '#fff',
+    backgroundColor: colors.background.default,
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
     gap: 12,

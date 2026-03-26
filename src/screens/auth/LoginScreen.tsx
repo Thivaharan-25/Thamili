@@ -94,7 +94,7 @@ const LoginScreen = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1, backgroundColor: 'rgba(245, 245, 250, 0.95)' }}
+      style={{ flex: 1, backgroundColor: colors.background.tertiary }}
     >
       <ScrollView
         className="flex-1"

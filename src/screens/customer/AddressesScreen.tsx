@@ -158,7 +158,7 @@ const AddressesScreen = () => {
                         onPress={() => navigation.goBack()}
                         style={styles.backButton}
                     >
-                        <Icon name="arrow-left" size={24} color="#fff" />
+                        <Icon name="arrow-left" size={24} color={colors.text.inverse} />
                     </TouchableOpacity>
                     <Text
                         style={styles.headerTitle}
@@ -232,7 +232,7 @@ const AddressesScreen = () => {
                     colors={[colors.secondary[400], colors.secondary[600]]}
                     style={styles.fabGradient}
                 >
-                    <Icon name="plus" size={30} color="#fff" />
+                    <Icon name="plus" size={30} color={colors.text.inverse} />
                 </LinearGradient>
             </TouchableOpacity>
 
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#fff',
+        color: colors.text.inverse,
     },
     content: {
         padding: 20,

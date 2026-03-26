@@ -20,7 +20,7 @@ import { useCartStore } from '../store/cartStore';
 import { RootStackParamList } from '../types';
 
 // Components
-import { LoadingScreen, CartBadge, CustomTabBar, AdminDashboardSkeleton } from '../components';
+import { LoadingScreen, BrandedSplash, CartBadge, CustomTabBar, AdminDashboardSkeleton } from '../components';
 import { colors } from '../theme';
 import { pushNotificationService } from '../services/pushNotificationService';
 import { useToast } from '../components';
@@ -248,7 +248,7 @@ const AppNavigator = () => {
 
     // Listen for deep links (e.g. auth callbacks)
     const subscription = Linking.addEventListener('url', ({ url }) => {
-      console.log('🔗 [AppNavigator] Deep link received:', url);
+      if (__DEV__) console.log('🔗 [AppNavigator] Deep link received:', url);
       if (url.includes('access_token') || url.includes('refresh_token')) {
         handleAuthCallback(url);
       }
@@ -262,26 +262,26 @@ const AppNavigator = () => {
   // 🔔 PUSH NOTIFICATIONS REGISTRATION & LISTENERS
   useEffect(() => {
     let cleanup: (() => void) | undefined;
+    let cancelled = false;
 
     const setupNotifications = async () => {
       // Only register if authenticated and user exists
       if (isAuthenticated && user?.id) {
-        console.log('🔔 [AppNavigator] Setting up notifications for user:', user.id);
+        if (__DEV__) console.log('🔔 [AppNavigator] Setting up notifications for user:', user.id);
 
         try {
           // 1. Register Token (triggers permission request)
           await pushNotificationService.registerToken(user.id);
-          console.log('✅ [AppNavigator] Notification token registration call completed');
+          if (cancelled) return;
+          if (__DEV__) console.log('✅ [AppNavigator] Notification token registration completed');
 
           // 2. Setup Listeners
           cleanup = await pushNotificationService.setupListeners(
             (notification) => {
-              console.log('📬 [AppNavigator] Notification Received:', notification);
-              // Optionally show an in-app toast or alert here
+              if (__DEV__) console.log('📬 [AppNavigator] Notification Received:', notification);
             },
             (response) => {
-              console.log('📑 [AppNavigator] Notification Tapped:', response);
-              // Handle navigation based on notification data
+              if (__DEV__) console.log('📑 [AppNavigator] Notification Tapped:', response);
               const data = response.notification.request.content.data;
 
               // 🔔 MARK AS READ ON TAP
@@ -289,32 +289,29 @@ const AppNavigator = () => {
                 try {
                   const { notificationService } = require('../services/notificationService');
                   notificationService.markAsRead(user.id, data.notificationId).catch((err: any) => {
-                    console.warn('[AppNavigator] Failed to mark notification as read on tap:', err);
+                    if (__DEV__) console.warn('[AppNavigator] Failed to mark notification as read on tap:', err);
                   });
                 } catch (e) {
-                  console.warn('[AppNavigator] Could not load notificationService for tap handle');
+                  if (__DEV__) console.warn('[AppNavigator] Could not load notificationService for tap handle');
                 }
               }
 
               if (data?.orderId && navigationRef.current) {
-                console.log('🚀 [AppNavigator] Navigating to OrderDetails for order:', data.orderId);
                 // @ts-ignore - Dynamic navigation
                 navigationRef.current.navigate('OrderDetails', { orderId: data.orderId });
               }
             }
           );
-          console.log('✅ [AppNavigator] Notification listeners attached');
         } catch (error) {
-          console.error('❌ [AppNavigator] Error setting up notifications:', error);
+          if (!cancelled && __DEV__) console.error('❌ [AppNavigator] Error setting up notifications:', error);
         }
-      } else {
-        console.log('🔔 [AppNavigator] Skipping notification setup (not authenticated or no user ID)');
       }
     };
 
     setupNotifications();
 
     return () => {
+      cancelled = true;
       if (cleanup) cleanup();
     };
   }, [isAuthenticated, user?.id]);
@@ -322,22 +319,31 @@ const AppNavigator = () => {
   // Navigate programmatically when auth state changes.
   // Since the Stack screen list is now fixed (never changes), React Navigation
   // no longer resets automatically on login/logout — we must navigate explicitly.
+  // Debounced to prevent rapid auth state changes from causing multiple resets.
+  const lastAuthResetRef = useRef<number>(0);
   useEffect(() => {
-    if (isInitialLoading) return; // let the initial load handle routing
+    if (isInitialLoading) return;
 
     if (!navigationRef.current) {
-      console.warn('⚠️ [AppNavigator] Navigation ref not ready during auth change');
+      if (__DEV__) console.warn('⚠️ [AppNavigator] Navigation ref not ready during auth change');
       return;
     }
 
-    console.log(`🔄 [AppNavigator] Auth state changed: isAuthenticated=${isAuthenticated}`);
+    // Debounce: skip if last reset was <500ms ago
+    const now = Date.now();
+    if (now - lastAuthResetRef.current < 500) {
+      if (__DEV__) console.log('[AppNavigator] Skipping rapid auth reset');
+      return;
+    }
+
+    if (__DEV__) console.log(`🔄 [AppNavigator] Auth state changed: isAuthenticated=${isAuthenticated}`);
 
     // Defer reset to next tick to avoid transient descriptor races during auth/logout transitions.
     const timer = setTimeout(() => {
       try {
         const nav = navigationRef.current;
         if (!nav || (typeof (nav as any).isReady === 'function' && !(nav as any).isReady())) {
-          console.warn('[AppNavigator] Navigation not ready for reset');
+          if (__DEV__) console.warn('[AppNavigator] Navigation not ready for reset');
           return;
         }
 
@@ -346,15 +352,16 @@ const AppNavigator = () => {
           ? true
           : countrySelected;
 
+        lastAuthResetRef.current = Date.now();
         nav.dispatch(
           CommonActions.reset({
             index: 0,
             routes: [{ name: hasCountrySelected ? 'Main' : 'CountrySelection' }],
           })
         );
-        console.log('[AppNavigator] Navigation reset successful');
+        if (__DEV__) console.log('[AppNavigator] Navigation reset successful');
       } catch (error) {
-        console.error('[AppNavigator] Failed to reset navigation:', error);
+        if (__DEV__) console.error('[AppNavigator] Failed to reset navigation:', error);
       }
     }, 0);
 
@@ -380,7 +387,7 @@ const AppNavigator = () => {
     if (isAuthenticated && user?.role?.toLowerCase().trim() === 'admin') {
       return <AdminDashboardSkeleton />;
     }
-    return <LoadingScreen message="Loading..." />;
+    return <BrandedSplash />;
   }
 
   // Check if country is selected (required for all users)

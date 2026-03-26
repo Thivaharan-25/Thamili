@@ -18,7 +18,8 @@ import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { useOrders } from '../../hooks/useOrders';
 import { useDeliveries } from '../../hooks/useDeliveries';
-import { CountrySelector, AnimatedView, Badge, useToast, LogoutModal, ConfirmationModal } from '../../components';
+import { CountrySelector, AnimatedView, Badge, useToast, LogoutModal, ConfirmationModal, SkeletonCard } from '../../components';
+import SkeletonLoader from '../../components/SkeletonLoader';
 import { formatPhoneNumber } from '../../utils/regionalFormatting';
 import { COUNTRIES } from '../../constants';
 import { ASSETS } from '../../constants/assets';
@@ -123,8 +124,8 @@ const ProfileScreen = () => {
   const padding = getResponsivePadding();
 
   // Fetch real order data
-  const { data: orders = [] } = useOrders(user?.id || '', { status: 'all' });
-  const { data: deliveries = [] } = useDeliveries(user?.role === 'delivery_partner' ? user?.id || '' : '');
+  const { data: orders = [], isLoading: isOrdersLoading } = useOrders(user?.id || '', { status: 'all' });
+  const { data: deliveries = [], isLoading: isDeliveriesLoading } = useDeliveries(user?.role === 'delivery_partner' ? user?.id || '' : '');
 
   const isDeliveryPartner = user?.role === 'delivery_partner';
 
@@ -203,6 +204,29 @@ const ProfileScreen = () => {
           style={[StyleSheet.absoluteFill, { paddingTop: insets.top }]}
         />
         <Text style={[styles.loadingText, { color: colors.white }]}>{t('common.loading')}</Text>
+      </View>
+    );
+  }
+
+  // Show profile skeleton while initial data loads
+  const isInitialLoad = (isOrdersLoading && orders.length === 0) || (isDeliveryPartner && isDeliveriesLoading && deliveries.length === 0);
+  if (isInitialLoad) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <LinearGradient
+          colors={[colors.navy[900], colors.navy[700]]}
+          style={{ paddingTop: insets.top + 16, paddingBottom: 40, paddingHorizontal: 20 }}
+        >
+          <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+            <SkeletonLoader width={80} height={80} borderRadius={40} style={{ marginBottom: 12 }} />
+            <SkeletonLoader width={140} height={18} borderRadius={8} style={{ marginBottom: 8 }} />
+            <SkeletonLoader width={180} height={14} borderRadius={7} />
+          </View>
+        </LinearGradient>
+        <View style={{ paddingHorizontal: padding.horizontal, marginTop: -20 }}>
+          <SkeletonCard type="profile" count={1} />
+        </View>
       </View>
     );
   }

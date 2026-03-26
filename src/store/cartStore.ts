@@ -25,13 +25,13 @@ const acquireCartMutex = async (): Promise<() => void> => {
           if (next) next();
         }
       };
-      // Safety: force-release after 5 seconds to prevent permanent lock
+      // Safety: force-release after 1 second to prevent permanent lock
       setTimeout(() => {
         if (!released) {
-          console.warn('[cartStore] Mutex force-released after 5s timeout');
+          if (__DEV__) console.warn('[cartStore] Mutex force-released after 1s timeout');
           release();
         }
-      }, 5000);
+      }, 1000);
       resolve(release);
     };
 
@@ -41,6 +41,17 @@ const acquireCartMutex = async (): Promise<() => void> => {
       cartMutexQueue.push(tryAcquire);
     }
   });
+};
+
+// Debounced save to prevent multiple rapid AsyncStorage writes
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+const debouncedSaveCart = (saveFn: () => Promise<void>) => {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveFn().catch((err) => {
+      if (__DEV__) console.error('Error in debounced cart save:', err);
+    });
+  }, 300);
 };
 
 interface CartState {
@@ -73,14 +84,14 @@ export const useCartStore = create<CartState>((set, get) => ({
   addItem: async (product, quantity, country) => {
     const release = await acquireCartMutex();
     try {
-      const stock = getProductStock(product, country);
       // Validate stock
       const stockValidation = validateStock(product, quantity, country);
       if (!stockValidation.isValid) {
-        console.warn(stockValidation.error);
+        if (__DEV__) console.warn(stockValidation.error);
         return;
       }
 
+      let newItems: CartItem[] | null = null;
       set((state) => {
         const isLoose = product.sell_type === 'loose';
         const packSize = product.pack_size_grams || 1000;
@@ -88,7 +99,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
         // stock from DB is in KG. Convert to available display units (grams or packets)
         const stock = country === 'denmark' ? product.stock_denmark : product.stock_germany;
-        
+
         const maxQuantity = isLoose
           ? stock * 1000
           : Math.floor(stock / (packSize / 1000));
@@ -103,13 +114,11 @@ export const useCartStore = create<CartState>((set, get) => ({
           (item) => item.product.id === product.id && item.selectedCountry === country
         );
 
-        let newItems;
         if (existingItem) {
           const newQuantity = existingItem.quantity + quantity;
           // Check if new quantity exceeds stock
           if (newQuantity > maxQuantity) {
-            console.warn(`Cannot add more than ${maxQuantity} ${isLoose ? 'g' : 'packets/items'}`);
-
+            if (__DEV__) console.warn(`Cannot add more than ${maxQuantity} ${isLoose ? 'g' : 'packets/items'}`);
             return state;
           }
           newItems = state.items.map((item) =>
@@ -118,7 +127,6 @@ export const useCartStore = create<CartState>((set, get) => ({
               : item
           );
         } else {
-          const isLoose = product.sell_type === 'loose';
           const initialQuantity = isLoose ? Math.max(quantity, 100) : quantity;
           newItems = [...state.items, {
             product,
@@ -129,10 +137,12 @@ export const useCartStore = create<CartState>((set, get) => ({
           }];
         }
 
-        // Save cart with new items immediately
-        get().saveCart(newItems).catch(console.error);
         return { items: newItems };
       });
+      // Save outside set() with debounce to batch rapid operations
+      if (newItems) {
+        debouncedSaveCart(() => get().saveCart(newItems!));
+      }
     } finally {
       release();
     }
@@ -141,12 +151,14 @@ export const useCartStore = create<CartState>((set, get) => ({
   removeItem: async (productId) => {
     const release = await acquireCartMutex();
     try {
+      let newItems: CartItem[] | null = null;
       set((state) => {
-        const filteredItems = state.items.filter((item) => item.product.id !== productId);
-        // Save cart with new items immediately
-        get().saveCart(filteredItems).catch(console.error);
-        return { items: filteredItems };
+        newItems = state.items.filter((item) => item.product.id !== productId);
+        return { items: newItems };
       });
+      if (newItems) {
+        debouncedSaveCart(() => get().saveCart(newItems!));
+      }
     } finally {
       release();
     }
@@ -160,6 +172,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
     const release = await acquireCartMutex();
     try {
+      let newItems: CartItem[] | null = null;
       set((state) => {
         const item = state.items.find((item) => item.product.id === productId);
         if (!item) return state;
@@ -174,15 +187,14 @@ export const useCartStore = create<CartState>((set, get) => ({
           ? stockKg * 1000
           : Math.floor(stockKg / (packSize / 1000));
 
-
         // Validate stock
         if (!isInStock(item.product, item.selectedCountry as Country)) {
-          console.warn(`${item.product.name} is out of stock`);
+          if (__DEV__) console.warn(`${item.product.name} is out of stock`);
           return state;
         }
 
         if (quantity > maxQuantity) {
-          console.warn(`Cannot set quantity to ${quantity}, max is ${maxQuantity}`);
+          if (__DEV__) console.warn(`Cannot set quantity to ${quantity}, max is ${maxQuantity}`);
           return state;
         }
 
@@ -194,51 +206,61 @@ export const useCartStore = create<CartState>((set, get) => ({
           return state;
         }
 
-        const updatedItems = state.items.map((item) =>
+        newItems = state.items.map((item) =>
           item.product.id === productId
             ? { ...item, quantity }
             : item
         );
-        // Save cart with new items immediately
-        get().saveCart(updatedItems).catch(console.error);
-        return { items: updatedItems };
+        return { items: newItems };
       });
+      if (newItems) {
+        debouncedSaveCart(() => get().saveCart(newItems!));
+      }
     } finally {
       release();
     }
   },
 
   toggleItemSelection: async (productId) => {
+    let newItems: CartItem[] | null = null;
     set((state) => {
-      const updatedItems = state.items.map((item) =>
+      newItems = state.items.map((item) =>
         item.product.id === productId
           ? { ...item, isSelected: !item.isSelected }
           : item
       );
-      get().saveCart(updatedItems).catch(console.error);
-      return { items: updatedItems };
+      return { items: newItems };
     });
+    if (newItems) {
+      debouncedSaveCart(() => get().saveCart(newItems!));
+    }
   },
 
   toggleAllItems: async (selected) => {
+    let newItems: CartItem[] | null = null;
     set((state) => {
-      const updatedItems = state.items.map((item) => ({
+      newItems = state.items.map((item) => ({
         ...item,
         isSelected: selected,
       }));
-      get().saveCart(updatedItems).catch(console.error);
-      return { items: updatedItems };
+      return { items: newItems };
     });
+    if (newItems) {
+      debouncedSaveCart(() => get().saveCart(newItems!));
+    }
   },
 
   removeSelectedItems: async () => {
     const release = await acquireCartMutex();
     try {
+      let newItems: CartItem[] | null = null;
       set((state) => {
-        const remainingItems = state.items.filter((item) => !item.isSelected);
-        get().saveCart(remainingItems).catch(console.error);
-        return { items: remainingItems };
+        newItems = state.items.filter((item) => !item.isSelected);
+        return { items: newItems };
       });
+      if (newItems) {
+        debouncedSaveCart(() => get().saveCart(newItems!));
+      }
     } finally {
       release();
     }
@@ -317,7 +339,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         set({ items: deduplicatedItems });
       }
     } catch (error) {
-      console.error('Error loading cart:', error);
+      if (__DEV__) console.error('Error loading cart:', error);
     }
   },
 
@@ -331,7 +353,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         await AsyncStorage.setItem(STORAGE_KEYS.SELECTED_COUNTRY, selectedCountry);
       }
     } catch (error) {
-      console.error('Error saving cart:', error);
+      if (__DEV__) console.error('Error saving cart:', error);
     }
   },
 
@@ -357,7 +379,7 @@ export const useCartStore = create<CartState>((set, get) => ({
         });
       }
     } catch (error) {
-      console.error('Error loading country:', error);
+      if (__DEV__) console.error('Error loading country:', error);
       set({
         countrySelected: false,
         hasLoadedCountry: true, // Mark as loaded explicitly on error

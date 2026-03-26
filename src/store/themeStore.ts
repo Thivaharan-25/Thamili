@@ -67,7 +67,7 @@ export const useThemeStore = create<ThemeState>((set, get) => {
           set({ themeMode: 'system', isDark: systemScheme === 'dark' });
         }
       } catch (error) {
-        console.error('Error loading theme preference:', error);
+        if (__DEV__) console.error('Error loading theme preference:', error);
         const systemScheme = Appearance.getColorScheme();
         set({ themeMode: 'system', isDark: systemScheme === 'dark' });
       }

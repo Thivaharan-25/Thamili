@@ -5,6 +5,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons as Icon } from '@expo/vector-icons';
 import { useAuthStore } from '../../store/authStore';
+import { colors } from '../../theme';
 import { AppHeader, ThemeToggle, PerformanceIndicator, ConfirmationModal } from '../../components';
 import { RootStackParamList } from '../../types';
 import { isSmallDevice, isTablet, getResponsivePadding, getResponsiveFontSize } from '../../utils/responsive';
@@ -59,6 +60,7 @@ const SettingsScreen = () => {
           </Text>
           <View style={styles.languageOptions}>
             <TouchableOpacity
+              activeOpacity={0.7}
               style={[
                 styles.languageOption,
                 i18n.language === 'en' && styles.languageOptionActive,
@@ -74,10 +76,11 @@ const SettingsScreen = () => {
                 {t('settings.english')}
               </Text>
               {i18n.language === 'en' && (
-                <Icon name="check" size={20} color="#007AFF" />
+                <Icon name="check" size={20} color={colors.info[500]} />
               )}
             </TouchableOpacity>
             <TouchableOpacity
+              activeOpacity={0.7}
               style={[
                 styles.languageOption,
                 i18n.language === 'ta' && styles.languageOptionActive,
@@ -95,7 +98,7 @@ const SettingsScreen = () => {
                 {t('settings.tamil')}
               </Text>
               {i18n.language === 'ta' && (
-                <Icon name="check" size={20} color="#007AFF" />
+                <Icon name="check" size={20} color={colors.info[500]} />
               )}
             </TouchableOpacity>
           </View>
@@ -166,20 +169,22 @@ const SettingsScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('settings.account')}</Text>
           <TouchableOpacity
+            activeOpacity={0.7}
             style={styles.settingItem}
             onPress={() => navigation.navigate('EditProfile' as never)}
           >
-            <Icon name="account-edit" size={24} color="#007AFF" />
+            <Icon name="account-edit" size={24} color={colors.info[500]} />
             <Text style={styles.settingText}>{t('settings.editProfile')}</Text>
-            <Icon name="chevron-right" size={24} color="#666" />
+            <Icon name="chevron-right" size={24} color={colors.neutral[500]} />
           </TouchableOpacity>
           <TouchableOpacity
+            activeOpacity={0.7}
             style={styles.settingItem}
             onPress={() => navigation.navigate('ChangePassword' as never)}
           >
-            <Icon name="lock-reset" size={24} color="#007AFF" />
+            <Icon name="lock-reset" size={24} color={colors.info[500]} />
             <Text style={styles.settingText}>{t('settings.changePassword')}</Text>
-            <Icon name="chevron-right" size={24} color="#666" />
+            <Icon name="chevron-right" size={24} color={colors.neutral[500]} />
           </TouchableOpacity>
         </View>
 
@@ -205,13 +210,14 @@ const SettingsScreen = () => {
         </View>
 
         {user?.role !== 'admin' && (
-          <View style={[styles.section, { marginTop: 20, borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 20 }]}>
+          <View style={[styles.section, { marginTop: 20, borderTopWidth: 1, borderTopColor: colors.border.light, paddingTop: 20 }]}>
             <TouchableOpacity
+              activeOpacity={0.7}
               style={styles.deleteItem}
               onPress={handleDeleteAccount}
               disabled={isLoading}
             >
-              <Icon name="account-remove-outline" size={24} color="#FF3B30" />
+              <Icon name="account-remove-outline" size={24} color={colors.error[500]} />
               <Text style={styles.deleteText}>
                 {isLoading ? t('common.processing') : t('settings.deleteAccount')}
               </Text>
@@ -232,7 +238,7 @@ const SettingsScreen = () => {
         confirmLabel={t('common.delete')}
         cancelLabel={t('common.cancel')}
         icon="account-remove-outline"
-        confirmColor="#FF3B30"
+        confirmColor={colors.error[500]}
       />
     </View>
   );
@@ -241,7 +247,7 @@ const SettingsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: colors.background.secondary,
   },
   content: {
     flex: 1,
@@ -253,7 +259,7 @@ const styles = StyleSheet.create({
     fontSize: getResponsiveFontSize(18),
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#000',
+    color: colors.text.primary,
   },
   languageOptions: {
     gap: 12,
@@ -264,56 +270,56 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.border.light,
     borderRadius: 8,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   languageOptionActive: {
-    borderColor: '#007AFF',
-    backgroundColor: '#f0f7ff',
+    borderColor: colors.info[500],
+    backgroundColor: colors.info[50],
   },
   languageOptionText: {
     fontSize: 16,
-    color: '#666',
+    color: colors.text.secondary,
   },
   languageOptionTextActive: {
-    color: '#007AFF',
+    color: colors.info[500],
     fontWeight: '600',
   },
   infoRow: {
     flexDirection: isSmallDevice() ? 'column' : 'row',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: colors.neutral[200],
     gap: isSmallDevice() ? 4 : 0,
   },
   infoLabel: {
     fontSize: getResponsiveFontSize(16),
     fontWeight: '600',
-    color: '#666',
+    color: colors.text.secondary,
     width: isSmallDevice() ? '100%' : 100,
   },
   infoValue: {
     fontSize: 16,
-    color: '#000',
+    color: colors.text.primary,
     flex: 1,
   },
   versionText: {
     fontSize: 14,
-    color: '#666',
+    color: colors.text.secondary,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: colors.neutral[200],
     gap: 12,
   },
   settingText: {
     flex: 1,
     fontSize: 16,
-    color: '#000',
+    color: colors.text.primary,
   },
   performanceIndicator: {
     marginTop: 8,
@@ -326,12 +332,12 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     fontSize: 16,
-    color: '#FF3B30',
+    color: colors.error[500],
     fontWeight: '600',
   },
   helperText: {
     fontSize: 12,
-    color: '#999',
+    color: colors.text.tertiary,
     marginTop: 4,
     marginLeft: 36,
   },

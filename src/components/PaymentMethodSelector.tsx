@@ -159,5 +159,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PaymentMethodSelector;
+export default React.memo(PaymentMethodSelector);
 

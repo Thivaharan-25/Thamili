@@ -64,7 +64,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
         set({ pickupPoints: JSON.parse(cachedPoints) });
       }
     } catch (error) {
-      console.error('Error loading data from cache:', error);
+      if (__DEV__) console.error('Error loading data from cache:', error);
     }
   },
 
@@ -90,7 +90,7 @@ export const useProductStore = create<ProductState>((set, get) => ({
       const points = await pickupPointService.getPickupPoints(country);
       get().setPickupPoints(points);
     } catch (error) {
-      console.error('Error fetching pickup points:', error);
+      if (__DEV__) console.error('Error fetching pickup points:', error);
     }
   },
 }));

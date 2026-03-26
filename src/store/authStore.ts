@@ -58,7 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setUser: (user) => {
     set({ user, isAuthenticated: !!user });
     if (user) {
-      console.log('💾 [authStore] Caching user data globally:', user.id);
+      if (__DEV__) console.log('💾 [authStore] Caching user data globally:', user.id);
       AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
     } else {
       AsyncStorage.removeItem(STORAGE_KEYS.USER_DATA);
@@ -84,7 +84,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isLoading: true });
       const supabase = getSupabase();
 
-      console.log('🔵 [authStore] Looking up email for username:', username);
+      if (__DEV__) console.log('🔵 [authStore] Looking up email for username:', username);
 
       // 1. Look up the email associated with this username from the database
       const { data: foundEmail, error: rpcError } = await supabase.rpc('get_email_by_username', {
@@ -92,7 +92,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
 
       if (rpcError) {
-        console.warn('⚠️ [authStore] Username lookup error (RPC):', rpcError.message);
+        if (__DEV__) console.warn('⚠️ [authStore] Username lookup error (RPC):', rpcError.message);
       }
 
       // 2. Determine which email to use for login
@@ -100,9 +100,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const loginEmail = foundEmail || `${username}@thamili.app`;
 
       if (foundEmail) {
-        console.log('✅ [authStore] Found registered email:', foundEmail);
+        if (__DEV__) console.log('✅ [authStore] Found registered email:', foundEmail);
       } else {
-        console.log('ℹ️ [authStore] No email found via RPC, trying dummy format:', loginEmail);
+        if (__DEV__) console.log('ℹ️ [authStore] No email found via RPC, trying dummy format:', loginEmail);
       }
 
       // 3. Login with determined email + password
@@ -111,7 +111,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isLoading: false });
       return result;
     } catch (error: any) {
-      console.error('❌ [authStore] Username login exception:', error);
+      if (__DEV__) console.error('❌ [authStore] Username login exception:', error);
       set({ isLoading: false, isAuthenticated: false });
       return { success: false, error: error.message || 'Login failed' };
     }
@@ -125,15 +125,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Verify auth object exists
       if (!supabase.auth) {
-        console.error('❌ [authStore] Auth object not available');
+        if (__DEV__) console.error('❌ [authStore] Auth object not available');
         return { success: false, error: 'Authentication service not available' };
       }
 
       // Supabase v1.x uses signIn, not signInWithPassword
       const auth = supabase.auth as any;
 
-      console.log('🔵 [authStore] Attempting login for:', email);
-      console.log('🔵 [authStore] Available auth methods:', {
+      if (__DEV__) console.log('🔵 [authStore] Attempting login for:', email);
+      if (__DEV__) console.log('🔵 [authStore] Available auth methods:', {
         hasSignIn: typeof auth.signIn === 'function',
         hasSignInWithPassword: typeof auth.signInWithPassword === 'function',
         hasSignInWithEmail: typeof auth.signInWithEmail === 'function',
@@ -144,13 +144,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Then fallback to signIn
       let response;
       if (typeof auth.signInWithPassword === 'function') {
-        console.log('🔵 [authStore] Using signInWithPassword...');
+        if (__DEV__) console.log('🔵 [authStore] Using signInWithPassword...');
         response = await auth.signInWithPassword({
           email,
           password,
         });
       } else if (typeof auth.signIn === 'function') {
-        console.log('🔵 [authStore] Using signIn...');
+        if (__DEV__) console.log('🔵 [authStore] Using signIn...');
         // Try different formats for v1.x
         try {
           response = await auth.signIn({
@@ -159,14 +159,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           });
         } catch (signInError: any) {
           // Try alternative format
-          console.log('🔵 [authStore] Trying alternative signIn format...');
+          if (__DEV__) console.log('🔵 [authStore] Trying alternative signIn format...');
           response = await auth.signIn(email, password);
         }
       } else {
         return { success: false, error: 'Authentication method not available' };
       }
 
-      console.log('🔵 [authStore] SignIn response:', {
+      if (__DEV__) console.log('🔵 [authStore] SignIn response:', {
         hasData: !!response.data,
         hasError: !!response.error,
         dataKeys: response.data ? Object.keys(response.data) : [],
@@ -176,7 +176,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
 
       if (response.error) {
-        console.error('❌ [authStore] Login error:', {
+        if (__DEV__) console.error('❌ [authStore] Login error:', {
           message: response.error.message,
           status: response.error.status,
           code: response.error.code,
@@ -248,7 +248,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         session = response.session;
       }
 
-      console.log('🔵 [authStore] Extracted user and session:', {
+      if (__DEV__) console.log('🔵 [authStore] Extracted user and session:', {
         hasUser: !!user,
         hasSession: !!session,
         userId: user?.id,
@@ -256,7 +256,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
 
       if (!user || !user.id) {
-        console.error('❌ [authStore] No user in response:', {
+        if (__DEV__) console.error('❌ [authStore] No user in response:', {
           responseKeys: Object.keys(response),
           responseDataKeys: response.data ? Object.keys(response.data) : [],
         });
@@ -267,14 +267,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // If no session in response, try to get it from auth (Supabase persists it)
       let finalSession = session;
       if (!finalSession || !finalSession.access_token) {
-        console.log('🔵 [authStore] No session in response, trying to get from auth storage...');
+        if (__DEV__) console.log('🔵 [authStore] No session in response, trying to get from auth storage...');
         try {
           // Wait a bit for Supabase to persist the session
           await new Promise(resolve => setTimeout(resolve, 100));
 
           if (typeof auth.getSession === 'function') {
             const sessionResponse = await auth.getSession();
-            console.log('🔵 [authStore] getSession response:', {
+            if (__DEV__) console.log('🔵 [authStore] getSession response:', {
               hasData: !!sessionResponse?.data,
               hasSession: !!sessionResponse?.session,
               keys: sessionResponse ? Object.keys(sessionResponse) : [],
@@ -290,17 +290,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           if (!finalSession || !finalSession.access_token) {
             const storedToken = await AsyncStorage.getItem(STORAGE_KEYS.USER_TOKEN);
             if (storedToken) {
-              console.log('🔵 [authStore] Found token in storage, creating session object');
+              if (__DEV__) console.log('🔵 [authStore] Found token in storage, creating session object');
               finalSession = { access_token: storedToken };
             }
           }
         } catch (sessionError) {
-          console.warn('⚠️ [authStore] Could not get session:', sessionError);
+          if (__DEV__) console.warn('⚠️ [authStore] Could not get session:', sessionError);
         }
       }
 
       if (!finalSession || !finalSession.access_token) {
-        console.error('❌ [authStore] No session or access token:', {
+        if (__DEV__) console.error('❌ [authStore] No session or access token:', {
           hasSession: !!finalSession,
           sessionKeys: finalSession ? Object.keys(finalSession) : [],
           responseStructure: JSON.stringify(response).substring(0, 200),
@@ -309,97 +309,57 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: false, error: 'Login failed: Unable to create session. Please try again.' };
       }
 
-      console.log('✅ [authStore] User and session received, fetching profile...');
+      if (__DEV__) console.log('✅ [authStore] User and session received, fetching profile...');
 
-      // Fetch user profile from database
-      // Use RPC call as fallback if direct query fails due to RLS issues
+      // Fetch user profile from database with timeout race
       let profile: any = null;
-      let profileError: any = null;
 
-      try {
-        console.log('🔍 [authStore] Fetching profile from database for user:', user.id);
-        const { data: profileList, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .limit(1);
-
-        if (error) {
-          // Log error but don't throw - use fallback
-          console.error('❌ [authStore] Profile fetch error:', {
-            message: error.message,
-            code: error.code,
-            details: error.details,
-            hint: error.hint,
-          });
-          profileError = error;
-        } else if (profileList && profileList.length > 0) {
-          profile = profileList[0];
-          console.log('✅ [authStore] Profile fetched successfully:', {
-            email: profile.email,
-            role: profile.role,
-            name: profile.name,
-          });
-        } else {
-          console.warn('⚠️ [authStore] Profile fetch returned no data');
-        }
-      } catch (err: any) {
-        profileError = err;
-        console.error('❌ [authStore] Profile fetch exception:', err.message, err);
-      }
-
-      // If profile fetch failed, try to fetch again with retry
-      if (!profile && profileError) {
-        console.log('🔄 [authStore] Retrying profile fetch...');
-        try {
-          const { data: retryData, error: retryError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', user.id)
-            .limit(1);
-
-          if (!retryError && retryData && retryData.length > 0) {
-            profile = retryData[0];
-            console.log('✅ [authStore] Profile fetched on retry:', {
-              email: profile.email,
-              role: profile.role,
-            });
-          } else {
-            console.error('❌ [authStore] Retry also failed:', retryError?.message);
+      // Use Promise.race to avoid hanging on slow network
+      const profileTimeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000));
+      const profileFetch = supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .limit(1)
+        .then(({ data, error }: any) => {
+          if (error) {
+            if (__DEV__) console.error('❌ [authStore] Profile fetch error:', error.message);
+            return null;
           }
-        } catch (retryErr) {
-          console.error('❌ [authStore] Retry exception:', retryErr);
-        }
-      }
+          return data && data.length > 0 ? data[0] : null;
+        })
+        .catch((err: any) => {
+          if (__DEV__) console.error('❌ [authStore] Profile fetch exception:', err.message);
+          return null;
+        });
 
-      // Fallback: use user metadata if profile fetch failed (but warn about it)
+      profile = await Promise.race([profileFetch, profileTimeout]);
+
+      // Fallback: use user metadata if profile fetch failed
       if (!profile && user.user_metadata) {
         try {
-          // Validate country_preference - only allow 'germany' or 'denmark'
           const countryPref = user.user_metadata.country_preference;
           const validCountry = (countryPref === 'germany' || countryPref === 'denmark')
             ? countryPref
-            : undefined; // Don't set invalid values, let it be NULL
+            : undefined;
 
           profile = {
             id: user.id,
             email: user.email,
             role: user.user_metadata.role || 'customer',
-            country_preference: validCountry, // NULL if invalid, which is allowed by constraint
+            country_preference: validCountry,
             phone: user.user_metadata.phone || undefined,
             created_at: user.created_at,
             updated_at: user.updated_at,
           };
-          console.warn('⚠️ [authStore] Using user metadata as profile fallback - ROLE MAY BE INCORRECT!');
-          console.warn('⚠️ [authStore] Database profile fetch failed, using metadata role:', profile.role);
+          if (__DEV__) console.warn('⚠️ [authStore] Using user metadata as profile fallback');
         } catch (metaErr) {
-          console.warn('⚠️ [authStore] Could not create profile from metadata');
+          if (__DEV__) console.warn('⚠️ [authStore] Could not create profile from metadata');
         }
       }
 
-      if (profileError && !profile) {
-        console.error('❌ [authStore] Profile fetch error (continuing anyway):', profileError?.message || 'Unknown error');
-        console.error('❌ [authStore] This may cause incorrect role assignment. Check database connection and RLS policies.');
+      if (!profile) {
+        if (__DEV__) console.error('❌ [authStore] Profile fetch failed — may cause incorrect role assignment.');
       }
 
       // Normalize role to lowercase for consistent comparison
@@ -427,7 +387,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         created_at: user.created_at,
       };
 
-      console.log('✅ [authStore] Setting user data:', {
+      if (__DEV__) console.log('✅ [authStore] Setting user data:', {
         id: userData.id,
         email: userData.email,
         name: userData.name,
@@ -440,9 +400,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // IMPORTANT: If user should be admin but role is 'customer', log warning
       if (userData.email && (userData.email.includes('admin') || userData.email.includes('@admin'))) {
-        console.warn('⚠️ [authStore] Admin email detected but role is:', userData.role);
-        console.warn('⚠️ [authStore] Please update role in database using:');
-        console.warn(`⚠️ UPDATE users SET role = 'admin' WHERE email = '${userData.email}';`);
+        if (__DEV__) console.warn('⚠️ [authStore] Admin email detected but role is:', userData.role);
+        if (__DEV__) console.warn('⚠️ [authStore] Please update role in database using:');
+        if (__DEV__) console.warn(`⚠️ UPDATE users SET role = 'admin' WHERE email = '${userData.email}';`);
       }
 
       // IMPORTANT: Clear old cached data first to prevent stale role
@@ -452,7 +412,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
       await AsyncStorage.setItem(STORAGE_KEYS.USER_TOKEN, finalSession.access_token);
 
-      console.log('💾 [authStore] User data saved to storage with role:', userData.role);
+      if (__DEV__) console.log('💾 [authStore] User data saved to storage with role:', userData.role);
 
       // Set user and token in state
       get().setUser(userData);
@@ -468,7 +428,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Verify state was updated
       const currentState = get();
-      console.log('✅ [authStore] Login successful, state updated:', {
+      if (__DEV__) console.log('✅ [authStore] Login successful, state updated:', {
         isAuthenticated: currentState.isAuthenticated,
         hasUser: !!currentState.user,
         hasToken: !!currentState.token,
@@ -480,8 +440,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Final check: Warn if role doesn't match expected
       if (currentState.user && currentState.user.role !== 'admin' && profile && profile.role === 'admin') {
-        console.error('❌ [authStore] CRITICAL: Database has admin role but app state shows:', currentState.user.role);
-        console.error('❌ [authStore] This is a state sync issue. Try logging out and back in.');
+        if (__DEV__) console.error('❌ [authStore] CRITICAL: Database has admin role but app state shows:', currentState.user.role);
+        if (__DEV__) console.error('❌ [authStore] This is a state sync issue. Try logging out and back in.');
       }
 
       // 🔔 NOTIFY USER OF SUCCESSFUL LOGIN (in-app record)
@@ -494,7 +454,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           'You have successfully logged in to your account.'
         );
       } catch (notifError) {
-        console.warn('[authStore] Failed to send login notification:', notifError);
+        if (__DEV__) console.warn('[authStore] Failed to send login notification:', notifError);
       }
 
       // 🔔 REGISTER PUSH TOKEN + SEND UNREAD DIGEST PUSH (non-blocking, runs in background)
@@ -503,19 +463,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           // 1. Register device push token for this user
           const { pushNotificationService } = require('../services/pushNotificationService');
           await pushNotificationService.registerToken(userData.id);
-          console.log('✅ [authStore] Push token registered on login');
+          if (__DEV__) console.log('✅ [authStore] Push token registered on login');
 
           // 2. Fire a digest push for any unread notifications
           const { notificationService } = require('../services/notificationService');
           await notificationService.sendLoginDigestPush(userData.id);
         } catch (digestError) {
-          console.warn('[authStore] Background digest/token registration failed (non-critical):', digestError);
+          if (__DEV__) console.warn('[authStore] Background digest/token registration failed (non-critical):', digestError);
         }
       }, 3000); // 3 second delay to allow app to fully initialise
 
       return { success: true };
     } catch (error: any) {
-      console.error('❌ [authStore] Login exception:', error);
+      if (__DEV__) console.error('❌ [authStore] Login exception:', error);
 
       // Provide concise, user-friendly error messages
       let errorMessage = 'An unexpected error occurred';
@@ -582,7 +542,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           });
 
         if (upsertError) {
-          console.error('Error upserting user profile:', upsertError);
+          if (__DEV__) console.error('Error upserting user profile:', upsertError);
           // Don't fail registration if profile update fails - user is still created by trigger
         }
 
@@ -600,14 +560,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             });
 
             if (signInError) {
-              console.warn('Auto-login after registration failed:', signInError.message);
+              if (__DEV__) console.warn('Auto-login after registration failed:', signInError.message);
               // Still return success - user is registered, they can login manually
               return { success: true };
             }
 
             session = signInData?.session || null;
           } else {
-            console.warn('Auto-login skipped: signIn method not available');
+            if (__DEV__) console.warn('Auto-login skipped: signIn method not available');
             // User is registered, they can login manually
             return { success: true };
           }
@@ -646,7 +606,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               const { pushNotificationService } = require('../services/pushNotificationService');
               await pushNotificationService.registerToken(user.id);
             } catch (err) {
-              console.warn('[authStore] Background token registration failed:', err);
+              if (__DEV__) console.warn('[authStore] Background token registration failed:', err);
             }
           }, 2000);
         }
@@ -669,7 +629,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Generate email from username
       const authEmail = `${username}@thamili.app`;
 
-      console.log('🔵 [authStore] Creating delivery partner:', { username, country });
+      if (__DEV__) console.log('🔵 [authStore] Creating delivery partner:', { username, country });
 
       // Create a temporary un-persisted supabase client to sign up the new user
       // without affecting the admin's currently logged-in session.
@@ -704,7 +664,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
 
       if (error) {
-        console.error('❌ Creation error:', error.message);
+        if (__DEV__) console.error('❌ Creation error:', error.message);
         if (error.message.includes('already registered')) {
           return { success: false, error: 'This username is already taken.' };
         }
@@ -720,7 +680,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       return { success: false, error: 'Creation failed' };
     } catch (error: any) {
-      console.error('❌ [authStore] Creation exception:', error);
+      if (__DEV__) console.error('❌ [authStore] Creation exception:', error);
       return { success: false, error: error.message || 'An unexpected error occurred' };
     } finally {
       set({ isLoading: false });
@@ -744,7 +704,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       return { success: true };
     } catch (error: any) {
-      console.error('❌ [authStore] Update exception:', error);
+      if (__DEV__) console.error('❌ [authStore] Update exception:', error);
       return { success: false, error: error.message || 'Update failed' };
     } finally {
       set({ isLoading: false });
@@ -758,7 +718,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await userService.deleteDeliveryPartner(userId);
       return { success: true };
     } catch (error: any) {
-      console.error('❌ [authStore] Delete exception:', error);
+      if (__DEV__) console.error('❌ [authStore] Delete exception:', error);
       return { success: false, error: error.message || 'Delete failed' };
     } finally {
       set({ isLoading: false });
@@ -777,7 +737,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const authEmail = email && email.trim() !== '' ? email.trim() : `${username}@thamili.app`;
       const isDummyEmail = authEmail.endsWith('@thamili.app');
 
-      console.log('🔵 [authStore] Registering with:', {
+      if (__DEV__) console.log('🔵 [authStore] Registering with:', {
         username,
         authEmail,
         isDummyEmail,
@@ -800,7 +760,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
 
       if (error) {
-        console.error('❌ Registration error:', error.message);
+        if (__DEV__) console.error('❌ Registration error:', error.message);
         // Handle common errors
         if (error.message.includes('already registered')) {
           const field = isDummyEmail ? 'username' : 'email or username';
@@ -822,14 +782,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           country_preference: country
         };
 
-        console.log('🔵 [authStore] Upserting public profile:', updateData);
+        if (__DEV__) console.log('🔵 [authStore] Upserting public profile:', updateData);
 
         const { error: upsertError } = await supabase
           .from('users')
           .upsert(updateData, { onConflict: 'id' });
 
         if (upsertError) {
-          console.error('⚠️ [authStore] Profile upsert error:', upsertError);
+          if (__DEV__) console.error('⚠️ [authStore] Profile upsert error:', upsertError);
           // Only show error if it's a constraint violation
           if (upsertError.message?.includes('users_email_key')) {
             return { success: false, error: 'This email is already linked to another account.' };
@@ -839,7 +799,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Auto-login logic
         let session = authSession;
         if (!session) {
-          console.log('🔵 [authStore] No session after signUp, attempting auto-login...');
+          if (__DEV__) console.log('🔵 [authStore] No session after signUp, attempting auto-login...');
           const auth = supabase.auth as any;
           if (auth && typeof auth.signIn === 'function') {
             const { user: signInUser, session: signInSession, error: signInError } = await auth.signIn({
@@ -850,7 +810,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             if (!signInError) {
               session = signInSession || null;
             } else {
-              console.log('⚠️ [authStore] Auto-login skipped (likely waiting for email verification):', signInError.message);
+              if (__DEV__) console.log('⚠️ [authStore] Auto-login skipped (likely waiting for email verification):', signInError.message);
             }
           }
         }
@@ -869,7 +829,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           get().setUser(user);
           get().setToken(session.access_token);
           set({ isAuthenticated: true, user, token: session.access_token });
-          console.log('✅ [authStore] Registration successful and logged in');
+          if (__DEV__) console.log('✅ [authStore] Registration successful and logged in');
 
           // 🔔 REGISTER PUSH TOKEN
           setTimeout(async () => {
@@ -877,12 +837,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               const { pushNotificationService } = require('../services/pushNotificationService');
               await pushNotificationService.registerToken(user.id);
             } catch (err) {
-              console.warn('[authStore] Background token registration failed:', err);
+              if (__DEV__) console.warn('[authStore] Background token registration failed:', err);
             }
           }, 2000);
         } else {
           // If no session even after auto-login attempt, it means email verification is required
-          console.log('✅ [authStore] Registration successful, verification email sent to:', authEmail);
+          if (__DEV__) console.log('✅ [authStore] Registration successful, verification email sent to:', authEmail);
         }
 
         return { success: true };
@@ -890,7 +850,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       return { success: false, error: 'Registration failed' };
     } catch (error: any) {
-      console.error('❌ [authStore] Registration exception:', error);
+      if (__DEV__) console.error('❌ [authStore] Registration exception:', error);
       return { success: false, error: error.message || 'An unexpected error occurred' };
     } finally {
       set({ isLoading: false });
@@ -902,7 +862,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
    * Robust implementation to prevent production crashes
    */
   logout: async () => {
-    console.log("🔄 [authStore] Starting logout process...");
+    if (__DEV__) console.log("🔄 [authStore] Starting logout process...");
     const currentState = get();
     const userId = currentState.user?.id;
     // Clear rate limit counters so the next user session starts fresh
@@ -912,12 +872,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       // 1. Unregister push token before signing out (requires valid session)
       if (userId) {
-        console.log('🔔 [authStore] Unregistering push token for user:', userId);
+        if (__DEV__) console.log('🔔 [authStore] Unregistering push token for user:', userId);
         try {
           const { pushNotificationService } = require('../services/pushNotificationService');
           await pushNotificationService.unregisterToken(userId);
         } catch (pushError) {
-          console.warn('⚠️ [authStore] pushNotificationService.unregisterToken failed:', pushError);
+          if (__DEV__) console.warn('⚠️ [authStore] pushNotificationService.unregisterToken failed:', pushError);
         }
       }
 
@@ -925,9 +885,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // This prevents components from attempting to use stale data during the transition
       try {
         queryClient.clear();
-        console.log('🧹 [authStore] Query cache cleared');
+        if (__DEV__) console.log('🧹 [authStore] Query cache cleared');
       } catch (cacheError) {
-        console.warn('⚠️ [authStore] queryClient.clear failed:', cacheError);
+        if (__DEV__) console.warn('⚠️ [authStore] queryClient.clear failed:', cacheError);
       }
 
       // 3. Attempt Supabase signOut
@@ -936,7 +896,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       try {
         await auth.signOut();
       } catch (signOutError) {
-        console.warn('⚠️ [authStore] Supabase signOut warning:', signOutError);
+        if (__DEV__) console.warn('⚠️ [authStore] Supabase signOut warning:', signOutError);
       }
 
       // 4. ATOMIC state clear - One single update to trigger UI transition
@@ -957,9 +917,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Execute clears
         await useCartStore.getState().clearCart();
         await useSavedForLaterStore.getState().clearAll();
-        console.log('🧹 [authStore] Related stores cleared');
+        if (__DEV__) console.log('🧹 [authStore] Related stores cleared');
       } catch (storeError) {
-        console.warn('⚠️ [authStore] Error clearing related stores:', storeError);
+        if (__DEV__) console.warn('⚠️ [authStore] Error clearing related stores:', storeError);
       }
 
       // 6. Clear storage
@@ -971,9 +931,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         '@thamili_saved_for_later', // Direct key for savedForLaterStore
       ]);
 
-      console.log('✅ [authStore] Logout successful - UI state and storage cleared');
+      if (__DEV__) console.log('✅ [authStore] Logout successful - UI state and storage cleared');
     } catch (error) {
-      console.error('❌ [authStore] Error during logout:', error);
+      if (__DEV__) console.error('❌ [authStore] Error during logout:', error);
       
       // Critical: Still clear local state even if everything else fails
       set({
@@ -1001,37 +961,37 @@ export const useAuthStore = create<AuthState>((set, get) => ({
    */
   deleteAccount: async () => {
     try {
-      console.log('🚮 [authStore] deleteAccount() called');
+      if (__DEV__) console.log('🚮 [authStore] deleteAccount() called');
       set({ isLoading: true });
       const { user } = get();
       
       if (!user) {
-        console.warn('⚠️ [authStore] deleteAccount() called but no user found');
+        if (__DEV__) console.warn('⚠️ [authStore] deleteAccount() called but no user found');
         return { success: false, error: 'User not authenticated' };
       }
 
-      console.log('🚮 [authStore] Starting account deletion for user:', user.id);
+      if (__DEV__) console.log('🚮 [authStore] Starting account deletion for user:', user.id);
 
       // 1. Call backend to delete account
       try {
         await userService.deleteCurrentUserAccount();
-        console.log('✅ [authStore] Backend account deletion successful');
+        if (__DEV__) console.log('✅ [authStore] Backend account deletion successful');
       } catch (backendError: any) {
-        console.error('❌ [authStore] Backend account deletion failed:', backendError);
+        if (__DEV__) console.error('❌ [authStore] Backend account deletion failed:', backendError);
         throw backendError;
       }
 
       // 2. Perform same cleanup as logout
-      console.log('🧹 [authStore] Performing cleanup (logout style)...');
+      if (__DEV__) console.log('🧹 [authStore] Performing cleanup (logout style)...');
       await get().logout();
 
-      console.log('✅ [authStore] Account deleted and session cleared');
+      if (__DEV__) console.log('✅ [authStore] Account deleted and session cleared');
       return { success: true };
     } catch (error: any) {
-      console.error('❌ [authStore] Account deletion error:', error);
+      if (__DEV__) console.error('❌ [authStore] Account deletion error:', error);
       return { success: false, error: error.message || 'Failed to delete account' };
     } finally {
-      console.log('🚮 [authStore] deleteAccount() flow finished');
+      if (__DEV__) console.log('🚮 [authStore] deleteAccount() flow finished');
       set({ isLoading: false });
     }
   },
@@ -1039,7 +999,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loadSession: async () => {
     try {
       set({ isLoading: true });
-      console.log('🔄 [authStore] Loading session...');
+      if (__DEV__) console.log('🔄 [authStore] Loading session...');
 
       // 0. RACE CONDITION PROTECTION
       // Allow AsyncStorage and Supabase's internal hydration to settle
@@ -1048,7 +1008,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // 1. Check for deep link first
       const initialUrl = await Linking.getInitialURL();
       if (initialUrl && (initialUrl.includes('access_token') || initialUrl.includes('refresh_token'))) {
-        console.log('🔗 [authStore] Initial deep link:', initialUrl);
+        if (__DEV__) console.log('🔗 [authStore] Initial deep link:', initialUrl);
         await get().handleAuthCallback(initialUrl);
         return;
       }
@@ -1080,19 +1040,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           })();
           if (!isExpired && supabase.auth && (supabase.auth as any).setAuth) {
             (supabase.auth as any).setAuth(token);
-            console.log('🔑 [authStore] Supabase client synced manually with cached token');
+            if (__DEV__) console.log('🔑 [authStore] Supabase client synced manually with cached token');
           } else if (isExpired) {
-            console.log('⚠️ [authStore] Cached token is expired — skipping setAuth, letting Supabase refresh');
+            if (__DEV__) console.log('⚠️ [authStore] Cached token is expired — skipping setAuth, letting Supabase refresh');
           }
           
           // SET LOCAL STATE IMMEDIATELY for snappy UI - This solves the "App fully closed" issue
           set({ user, token, isAuthenticated: true, isLoading: false });
-          console.log('✅ [authStore] Cached session data restored for:', user.email);
+          if (__DEV__) console.log('✅ [authStore] Cached session data restored for:', user.email);
           
           // If we have cached data, we can finish initial loading early
           // The rest of the function will run in background to sync with server
         } catch (e) {
-          console.error('❌ [authStore] Failed to parse cached user data');
+          if (__DEV__) console.error('❌ [authStore] Failed to parse cached user data');
         }
       }
 
@@ -1114,14 +1074,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           session = auth.session;
         }
       } catch (sessionError) {
-        console.warn('⚠️ [authStore] Error getting Supabase session:', sessionError);
+        if (__DEV__) console.warn('⚠️ [authStore] Error getting Supabase session:', sessionError);
       }
 
       // 4. MANUAL TOKEN VERIFICATION (Safety for APK builds)
       // If Supabase session is null but we had a token, try to manually fetch user to VERIFY
       let isDefinitiveAuthFailure = false;
       if (!session && token) {
-        console.log('🔍 [authStore] Supabase session null but token found, verifying manually...');
+        if (__DEV__) console.log('🔍 [authStore] Supabase session null but token found, verifying manually...');
         try {
           // Try to get user with the stored token
           // In Supabase v1, getUser is on supabase.auth or supabase.auth.api
@@ -1137,11 +1097,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           if (verifyResponse) {
             const { user: verifiedUser, error: verifyError } = verifyResponse;
             if (!verifyError && verifiedUser) {
-              console.log('✅ [authStore] Manual verification successful for user:', verifiedUser.email);
+              if (__DEV__) console.log('✅ [authStore] Manual verification successful for user:', verifiedUser.email);
               session = { user: verifiedUser, access_token: token };
               if (authObj.setAuth) authObj.setAuth(token);
             } else if (verifyError) {
-              console.error('❌ [authStore] Manual verification error:', verifyError.message, 'Status:', verifyError.status);
+              if (__DEV__) console.error('❌ [authStore] Manual verification error:', verifyError.message, 'Status:', verifyError.status);
               // Only treat 401 (Unauthorized) or 403 (Forbidden) as definitive failures
               if (verifyError.status === 401 || verifyError.status === 403) {
                 isDefinitiveAuthFailure = true;
@@ -1149,13 +1109,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             }
           }
         } catch (verifyEx: any) {
-          console.error('❌ [authStore] Manual verification exception:', verifyEx.message);
+          if (__DEV__) console.error('❌ [authStore] Manual verification exception:', verifyEx.message);
           // Exceptions (like network timeout) are NOT definitive auth failures
         }
       }
 
       if (session?.user) {
-        console.log('🔄 [authStore] Syncing profile with database...');
+        if (__DEV__) console.log('🔄 [authStore] Syncing profile with database...');
         try {
           // Use 'maybeSingle' to avoid 406 error - it returns null if not found
           const { data: profile, error: profileError } = await (supabase
@@ -1165,7 +1125,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             .maybeSingle();
 
           if (profileError) {
-            console.warn('⚠️ [authStore] Database profile fetch failed (continuing with cached data):', profileError.message);
+            if (__DEV__) console.warn('⚠️ [authStore] Database profile fetch failed (continuing with cached data):', profileError.message);
           }
 
           // Use DB profile if available, otherwise fallback to cached userData
@@ -1195,7 +1155,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             // Persist back to storage to keep it fresh
             await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(updatedUser));
             await AsyncStorage.setItem(STORAGE_KEYS.USER_TOKEN, session.access_token);
-            console.log('✅ [authStore] Session restoration completed successfully');
+            if (__DEV__) console.log('✅ [authStore] Session restoration completed successfully');
 
             // 🔔 REGISTER PUSH TOKEN (Refresh registration on every app start)
             setTimeout(async () => {
@@ -1203,15 +1163,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 const { pushNotificationService } = require('../services/pushNotificationService');
                 await pushNotificationService.registerToken(updatedUser.id);
               } catch (err) {
-                console.warn('[authStore] Background token registration failed:', err);
+                if (__DEV__) console.warn('[authStore] Background token registration failed:', err);
               }
             }, 5000);
           } else {
-            console.warn('⚠️ [authStore] No profile found even in cache');
+            if (__DEV__) console.warn('⚠️ [authStore] No profile found even in cache');
             set({ isAuthenticated: true, token: session.access_token });
           }
         } catch (innerError) {
-          console.error('❌ [authStore] Profile restoration error:', innerError);
+          if (__DEV__) console.error('❌ [authStore] Profile restoration error:', innerError);
           // Don't log out here if we have cached data, just let the app proceed
           if (get().user && get().token) {
             set({ isAuthenticated: true });
@@ -1219,16 +1179,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
       } else {
         // No session found AND manual verification didn't provide a user
-        console.log('ℹ️ [authStore] No active Supabase session found');
+        if (__DEV__) console.log('ℹ️ [authStore] No active Supabase session found');
         
         if (isDefinitiveAuthFailure) {
-          console.log('🚮 [authStore] Definitive auth failure (401/403), clearing session');
+          if (__DEV__) console.log('🚮 [authStore] Definitive auth failure (401/403), clearing session');
           set({ isAuthenticated: false, user: null, token: null });
           await AsyncStorage.multiRemove([STORAGE_KEYS.USER_TOKEN, STORAGE_KEYS.USER_DATA]);
         } else if (token && userData) {
           // RESILIENCE: We have cached data and NO definitive failure (could be offline)
           // Keep the user logged in with the data we already restored at the start of this function
-          console.log('🛡️ [authStore] Retaining cached session due to verification uncertainty (offline mode)');
+          if (__DEV__) console.log('🛡️ [authStore] Retaining cached session due to verification uncertainty (offline mode)');
           set({ isAuthenticated: true });
         } else {
           // Truly no session and no cached data
@@ -1240,7 +1200,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ hasCompletedOnboarding: onboarding === 'true' });
       
     } catch (error: any) {
-      console.error('❌ [authStore] loadSession crash recovery:', error);
+      if (__DEV__) console.error('❌ [authStore] loadSession crash recovery:', error);
       // Resilience: If loadSession crashes, don't leave loading state forever
       set({ isLoading: false });
     } finally {
@@ -1252,11 +1212,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const supabase = getSupabase();
     if (!supabase?.auth?.onAuthStateChange) return;
 
-    console.log('🛡️ [authStore] Setting up global auth listener...');
+    if (__DEV__) console.log('🛡️ [authStore] Setting up global auth listener...');
     
     // Supabase v1.x and v2.x have slightly different onAuthStateChange signatures
     supabase.auth.onAuthStateChange(async (event: string, session: any) => {
-      console.log(`🔔 [authStore] Auth event: ${event}`);
+      if (__DEV__) console.log(`🔔 [authStore] Auth event: ${event}`);
       
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         if (session?.user) {
@@ -1272,7 +1232,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         // Handle external sign outs (e.g. from Dashboard or token revocation)
         if (get().isAuthenticated) {
-          console.log('🚮 [authStore] External sign-out detected, clearing local state');
+          if (__DEV__) console.log('🚮 [authStore] External sign-out detected, clearing local state');
           get().logout();
         }
       }
@@ -1311,7 +1271,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Also save to AsyncStorage
       await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(updatedUser));
     } catch (error) {
-      console.error('Error updating country preference:', error);
+      if (__DEV__) console.error('Error updating country preference:', error);
       throw error; // Re-throw so caller can handle it
     } finally {
       set({ isLoading: false });
@@ -1368,7 +1328,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await AsyncStorage.setItem(STORAGE_KEYS.ONBOARDING_COMPLETED, 'true');
       set({ hasCompletedOnboarding: true });
     } catch (error) {
-      console.error('Error completing onboarding:', error);
+      if (__DEV__) console.error('Error completing onboarding:', error);
     }
   },
 
@@ -1377,7 +1337,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const completed = await AsyncStorage.getItem(STORAGE_KEYS.ONBOARDING_COMPLETED);
       set({ hasCompletedOnboarding: completed === 'true' });
     } catch (error) {
-      console.error('Error checking onboarding status:', error);
+      if (__DEV__) console.error('Error checking onboarding status:', error);
       set({ hasCompletedOnboarding: false });
     }
   },
@@ -1388,13 +1348,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isLoading: true });
       const supabase = getSupabase();
 
-      console.log('🔵 [authStore] Initiating Google Login...');
+      if (__DEV__) console.log('🔵 [authStore] Initiating Google Login...');
 
       // Get the redirect URL
       // Use the scheme defined in app.json and add path
       // e.g. thamili://auth-callback
       const redirectUrl = 'thamili://auth-callback';
-      console.log('🔗 [authStore] Redirect URL:', redirectUrl);
+      if (__DEV__) console.log('🔗 [authStore] Redirect URL:', redirectUrl);
 
       const { user, session, error, url } = await supabase.auth.signIn({
         provider: 'google',
@@ -1403,7 +1363,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
 
       if (error) {
-        console.error('❌ [authStore] Google login error:', error.message);
+        if (__DEV__) console.error('❌ [authStore] Google login error:', error.message);
         set({ isLoading: false });
         if (error.message.includes('No URL scheme registered')) {
           return { success: false, error: 'Configuration error: URL scheme not found.' };
@@ -1411,23 +1371,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return { success: false, error: error.message };
       }
 
-      console.log('✅ [authStore] Google login initiated. Response URL:', url);
+      if (__DEV__) console.log('✅ [authStore] Google login initiated. Response URL:', url);
 
       // If Supabase returns a URL (common in v1 RN), open it manually
       if (url) {
-        console.log('🔗 [authStore] Opening OAuth URL manually:', url);
+        if (__DEV__) console.log('🔗 [authStore] Opening OAuth URL manually:', url);
         const supported = await Linking.canOpenURL(url);
         if (supported) {
           await Linking.openURL(url);
         } else {
-          console.error('❌ [authStore] Cannot open OAuth URL:', url);
+          if (__DEV__) console.error('❌ [authStore] Cannot open OAuth URL:', url);
           return { success: false, error: 'Cannot open browser for login' };
         }
       }
 
       return { success: true };
     } catch (error: any) {
-      console.error('❌ [authStore] Google login exception:', error);
+      if (__DEV__) console.error('❌ [authStore] Google login exception:', error);
       set({ isLoading: false });
       return { success: false, error: error.message || 'Google login failed' };
     } finally {
@@ -1439,7 +1399,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   handleAuthCallback: async (url: string) => {
     try {
-      console.log('🔗 [authStore] Handling auth callback:', url);
+      if (__DEV__) console.log('🔗 [authStore] Handling auth callback:', url);
       set({ isLoading: true });
 
       const supabase = getSupabase();
@@ -1467,13 +1427,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const error = params.get('error_description') || params.get('error');
 
       if (error) {
-        console.error('❌ [authStore] Auth callback error:', error);
+        if (__DEV__) console.error('❌ [authStore] Auth callback error:', error);
         set({ isLoading: false });
         return;
       }
 
       if (accessToken) {
-        console.log('✅ [authStore] Extracted access token from URL');
+        if (__DEV__) console.log('✅ [authStore] Extracted access token from URL');
 
         // IMPORTANT: Set the session in Supabase so subsequent queries are authenticated
         if (refreshToken) {
@@ -1490,7 +1450,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const { user: authUser, error: userError } = await supabase.auth.api.getUser(accessToken);
 
         if (userError || !authUser) {
-          console.error('❌ [authStore] Failed to get user details:', userError);
+          if (__DEV__) console.error('❌ [authStore] Failed to get user details:', userError);
           set({ isLoading: false });
           return;
         }
@@ -1513,12 +1473,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             const localCountry = useCartStore.getState().selectedCountry;
             
             if (localCountry) {
-              console.log('🌍 [authStore] Syncing local country preference for Google user:', localCountry);
+              if (__DEV__) console.log('🌍 [authStore] Syncing local country preference for Google user:', localCountry);
               await userService.updateCountryPreference(authUser.id, localCountry);
               countryPreference = localCountry;
             }
           } catch (syncError) {
-            console.warn('⚠️ [authStore] Failed to sync guest country preference:', syncError);
+            if (__DEV__) console.warn('⚠️ [authStore] Failed to sync guest country preference:', syncError);
           }
         }
 
@@ -1542,12 +1502,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         get().setToken(accessToken);
 
         set({ isAuthenticated: true, user: userData, token: accessToken });
-        console.log('✅ [authStore] Google login successful!');
+        if (__DEV__) console.log('✅ [authStore] Google login successful!');
       }
 
       set({ isLoading: false });
     } catch (error) {
-      console.error('❌ [authStore] Error handling auth callback:', error);
+      if (__DEV__) console.error('❌ [authStore] Error handling auth callback:', error);
       set({ isLoading: false });
     }
   },
@@ -1618,7 +1578,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isLoading: true });
       const supabase = getSupabase();
 
-      console.log('🔵 [authStore] Requesting password reset for:', email);
+      if (__DEV__) console.log('🔵 [authStore] Requesting password reset for:', email);
 
       // Standard Supabase password reset
       const auth = supabase.auth as any;
@@ -1639,14 +1599,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       if (error) {
-        console.error('❌ [authStore] Reset password error:', error.message);
+        if (__DEV__) console.error('❌ [authStore] Reset password error:', error.message);
         return { success: false, error: error.message };
       }
 
-      console.log('✅ [authStore] Password reset email sent');
+      if (__DEV__) console.log('✅ [authStore] Password reset email sent');
       return { success: true };
     } catch (error: any) {
-      console.error('❌ [authStore] Reset password exception:', error);
+      if (__DEV__) console.error('❌ [authStore] Reset password exception:', error);
       return { success: false, error: error.message || 'Failed to send reset email' };
     } finally {
       set({ isLoading: false });
@@ -1659,7 +1619,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isLoading: true });
       const supabase = getSupabase();
 
-      console.log('🔵 [authStore] Checking username:', username);
+      if (__DEV__) console.log('🔵 [authStore] Checking username:', username);
 
       let foundEmail: string | null = null;
       let userFound = false;
@@ -1671,9 +1631,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!rpcError && rpcData && rpcData.exists) {
         foundEmail = rpcData.email;
         userFound = true;
-        console.log('✅ [authStore] Found user via RPC:', { email: foundEmail, exists: true });
+        if (__DEV__) console.log('✅ [authStore] Found user via RPC:', { email: foundEmail, exists: true });
       } else {
-        if (rpcError) console.warn('⚠️ [authStore] RPC error:', rpcError.message);
+        if (rpcError && __DEV__) console.warn('⚠️ [authStore] RPC error:', rpcError.message);
 
         // 2. Fallback to table select (if public rls allows)
         // Check BOTH username and name columns
@@ -1686,13 +1646,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (data && data.length > 0) {
           foundEmail = data[0].email;
           userFound = true;
-          console.log('✅ [authStore] Found user via table select:', {
+          if (__DEV__) console.log('✅ [authStore] Found user via table select:', {
             hasEmail: !!foundEmail,
             matchedUsername: data[0].username === username,
             matchedName: data[0].name === username
           });
         } else if (error) {
-          console.warn('⚠️ [authStore] Table select error:', error.message);
+          if (__DEV__) console.warn('⚠️ [authStore] Table select error:', error.message);
         }
       }
 
@@ -1709,7 +1669,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         foundEmail.endsWith('@thamili.app') ||
         foundEmail.endsWith('@thamili.phone');
 
-      console.log('🔵 [authStore] Username check result:', {
+      if (__DEV__) console.log('🔵 [authStore] Username check result:', {
         exists: true,
         emailPrefix: foundEmail ? foundEmail.substring(0, 3) + '...' : 'null',
         isDummy
@@ -1722,7 +1682,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       };
 
     } catch (error: any) {
-      console.error('❌ [authStore] Check username exception:', error);
+      if (__DEV__) console.error('❌ [authStore] Check username exception:', error);
       set({ isLoading: false });
       return { exists: false, error: error.message || 'Failed to check username' };
     }
@@ -1733,7 +1693,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isLoading: true });
       const supabase = getSupabase();
 
-      console.log('🔵 [authStore] Recovering account - updating email for:', { username, newEmail });
+      if (__DEV__) console.log('🔵 [authStore] Recovering account - updating email for:', { username, newEmail });
 
       // 1. Call Secure RPC to update email
       // We cannot update auth.users or public.users (due to RLS) directly from client without session
@@ -1743,17 +1703,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
 
       if (rpcError) {
-        console.error('❌ [authStore] RPC error:', rpcError.message);
+        if (__DEV__) console.error('❌ [authStore] RPC error:', rpcError.message);
         throw new Error(rpcError.message);
       }
 
       // Check RPC custom success/error response
       if (rpcData && !rpcData.success) {
-        console.error('❌ [authStore] Claim failed:', rpcData.error);
+        if (__DEV__) console.error('❌ [authStore] Claim failed:', rpcData.error);
         throw new Error(rpcData.error || 'Failed to update email');
       }
 
-      console.log('✅ [authStore] Email updated successfully via RPC');
+      if (__DEV__) console.log('✅ [authStore] Email updated successfully via RPC');
 
       // 2. Trigger Password Reset for the NEW email
       // Now that the email is in auth.users, this will work!
@@ -1762,17 +1722,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
 
       if (resetError) {
-        console.error('❌ [authStore] Failed to send reset email:', resetError.message);
+        if (__DEV__) console.error('❌ [authStore] Failed to send reset email:', resetError.message);
         throw resetError;
       }
 
-      console.log('✅ [authStore] Recovery/Verification email sent to:', newEmail);
+      if (__DEV__) console.log('✅ [authStore] Recovery/Verification email sent to:', newEmail);
 
       set({ isLoading: false });
       return { success: true };
 
     } catch (error: any) {
-      console.error('❌ [authStore] Recovery exception:', error);
+      if (__DEV__) console.error('❌ [authStore] Recovery exception:', error);
       set({ isLoading: false });
       return { success: false, error: error.message || 'Recovery failed' };
     }

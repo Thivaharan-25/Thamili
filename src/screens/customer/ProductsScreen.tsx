@@ -413,9 +413,13 @@ const ProductsScreen = () => {
         <View style={{ flex: 1 }}>
           {HeaderComponent}
           <EmptyState
-            icon="magnify"
+            icon={searchQuery ? "magnify" : "store-off"}
             title={searchQuery ? t('products.noProductsFound') : t('products.noProductsAvailable')}
             message={searchQuery ? t('products.tryAdjusting') : t('products.checkBackLaterSuggestion')}
+            suggestions={searchQuery ? [
+              t('products.clearSearchSuggestion', { defaultValue: 'Try clearing your search' }),
+              t('products.differentFilterSuggestion', { defaultValue: 'Use a different category filter' }),
+            ] : []}
           />
         </View>
       ) : (

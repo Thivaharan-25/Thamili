@@ -27,6 +27,7 @@ import {
 } from '../../components';
 import { getFilteredOrders } from '../../utils/orderUtils';
 import { debounce } from '../../utils/debounce';
+import { colors } from '../../theme';
 import { COUNTRIES } from '../../constants';
 import type { Country } from '../../constants';
 import {
@@ -120,7 +121,7 @@ const OrdersScreen = () => {
   // Defensive guard for logout transition
   if (!isAuthenticated || !user) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      <View style={{ flex: 1, backgroundColor: colors.background.default }}>
         <AppHeader title={t('orders.title')} showCart={false} />
         <View style={{ paddingHorizontal: padding.horizontal, paddingTop: padding.vertical }}>
           <SkeletonCard type="order" count={3} />
@@ -138,7 +139,7 @@ const OrdersScreen = () => {
         paddingHorizontal: padding.horizontal,
         paddingTop: padding.vertical,
         paddingBottom: 8,
-        backgroundColor: '#fff',
+        backgroundColor: colors.white,
       }}
     >
       <SearchBar
@@ -170,7 +171,7 @@ const OrdersScreen = () => {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      <View style={{ flex: 1, backgroundColor: colors.background.default }}>
         <AppHeader title={t('orders.title')} showCart={false} />
         <View style={{ paddingHorizontal: padding.horizontal, paddingTop: padding.vertical }}>
           <SkeletonCard type="order" count={3} />
@@ -181,7 +182,7 @@ const OrdersScreen = () => {
 
   if (error) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      <View style={{ flex: 1, backgroundColor: colors.background.default }}>
         <AppHeader title={t('orders.title')} showCart={false} />
         <ErrorMessage
           message={t('orders.failedToLoad')}
@@ -195,7 +196,7 @@ const OrdersScreen = () => {
 
   if (filteredOrders.length === 0) {
     return (
-      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      <View style={{ flex: 1, backgroundColor: colors.background.default }}>
         <AppHeader title={t('orders.title')} showCart={false} />
         {HeaderComponent}
         <EmptyState
@@ -206,6 +207,12 @@ const OrdersScreen = () => {
               ? t('orders.emptyMessageSearch')
               : t('orders.emptyMessageNoOrders')
           }
+          actionLabel={searchQuery ? undefined : t('orders.startShopping', { defaultValue: 'Start Shopping' })}
+          onAction={searchQuery ? undefined : () => (navigation as any).navigate('Main', { screen: 'Products' })}
+          suggestions={searchQuery ? [
+            t('orders.searchSuggestion1', { defaultValue: 'Check for typos in your search' }),
+            t('orders.searchSuggestion2', { defaultValue: 'Try using a different order ID' }),
+          ] : []}
         />
       </View>
     );

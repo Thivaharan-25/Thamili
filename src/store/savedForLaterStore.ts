@@ -72,7 +72,7 @@ export const useSavedForLaterStore = create<SavedForLaterState>((set, get) => ({
         set({ items });
       }
     } catch (error) {
-      console.error('Error loading saved items:', error);
+      if (__DEV__) console.error('Error loading saved items:', error);
     }
   },
 
@@ -84,7 +84,7 @@ export const useSavedForLaterStore = create<SavedForLaterState>((set, get) => ({
     try {
       await AsyncStorage.setItem(SAVED_FOR_LATER_KEY, JSON.stringify(get().items));
     } catch (error) {
-      console.error('Error saving items:', error);
+      if (__DEV__) console.error('Error saving items:', error);
     }
   },
 }));
