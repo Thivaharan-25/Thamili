@@ -15,7 +15,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { useProduct, useProducts } from '../../hooks/useProducts';
 import { requireAuth } from '../../utils/requireAuth';
-import { ImageGallery, Button, LoadingScreen, ErrorMessage, AppHeader, QuantitySelector, Badge, AnimatedView, FavoriteButton, ProductCard, AuthRequiredModal, useToast } from '../../components';
+import { ImageGallery, Button, LoadingScreen, ErrorMessage, AppHeader, QuantitySelector, Badge, AnimatedView, FavoriteButton, ProductCard, AuthRequiredModal, useToast, SkeletonCard } from '../../components';
 import { useLoading } from '../../contexts/LoadingContext';
 import { productService } from '../../services/productService';
 import { formatPrice, isInStock, getProductStock, isProductWeightBased } from '../../utils/productUtils';
@@ -129,12 +129,17 @@ const ProductDetailsScreen = () => {
   };
 
   if (isLoading) {
-    return <LoadingScreen message={t('products.loadingDetails')} />;
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background.tertiary }}>
+        <AppHeader title={t('products.detailsTitle')} showBack />
+        <SkeletonCard type="detail" count={1} />
+      </View>
+    );
   }
 
   if (error || !product) {
     return (
-      <View style={{ flex: 1, backgroundColor: 'rgba(245, 245, 250, 0.95)' }}>
+      <View style={{ flex: 1, backgroundColor: colors.background.tertiary }}>
         <AppHeader title={t('products.detailsTitle')} showBack />
         <ErrorMessage
           message={t('products.failedToLoadDetails')}

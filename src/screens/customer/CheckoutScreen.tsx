@@ -168,17 +168,17 @@ const CheckoutScreen = () => {
     const fetchExistingAddress = async () => {
       // Don't fetch if already loaded or not authenticated
       if (!isAuthenticated || !user?.id || isAddressesLoaded) {
-        console.log(`ℹ️ [Checkout] Skipping address fetch: auth=${isAuthenticated}, user=${user?.id}, loaded=${isAddressesLoaded}`);
+        if (__DEV__) console.log(`ℹ️ [Checkout] Skipping address fetch: auth=${isAuthenticated}, user=${user?.id}, loaded=${isAddressesLoaded}`);
         return;
       }
 
       try {
-        console.log(`📡 [Checkout] Fetching existing addresses for user: ${user.id}`);
+        if (__DEV__) console.log(`📡 [Checkout] Fetching existing addresses for user: ${user.id}`);
         const addresses = await addressService.getUserAddresses(user.id);
 
         if (!isMounted) return;
 
-        console.log(`✅ [Checkout] Found ${addresses.length} addresses in DB`);
+        if (__DEV__) console.log(`✅ [Checkout] Found ${addresses.length} addresses in DB`);
 
         if (addresses.length > 0) {
           // Priority: 1. Type is 'Home', 2. is_default is true, 3. First available
@@ -187,13 +187,13 @@ const CheckoutScreen = () => {
             addresses[0];
 
           if (homeAddr) {
-            console.log('📍 [Checkout] Selecting pre-fill address:', homeAddr.street, `(Type: ${homeAddr.type})`);
+            if (__DEV__) console.log('📍 [Checkout] Selecting pre-fill address:', homeAddr.street, `(Type: ${homeAddr.type})`);
 
             setDeliveryAddress(prev => {
               // Only overwrite if form is currently empty
               const isEmpty = !prev.street && !prev.city;
               if (isEmpty) {
-                console.log('✍️ [Checkout] Pre-filling empty address form');
+                if (__DEV__) console.log('✍️ [Checkout] Pre-filling empty address form');
                 return {
                   ...prev,
                   street: homeAddr.street || '',
@@ -204,18 +204,18 @@ const CheckoutScreen = () => {
                   instructions: homeAddr.instructions || prev.instructions || '',
                 };
               } else {
-                console.log('⚠️ [Checkout] Form not empty, skipping pre-fill to avoid overwriting edits');
+                if (__DEV__) console.log('⚠️ [Checkout] Form not empty, skipping pre-fill to avoid overwriting edits');
                 return prev;
               }
             });
           }
         } else {
-          console.log('ℹ️ [Checkout] No addresses found in DB for this user');
+          if (__DEV__) console.log('ℹ️ [Checkout] No addresses found in DB for this user');
         }
 
         setIsAddressesLoaded(true);
       } catch (error) {
-        console.error('❌ [Checkout] Failed to fetch existing address:', error);
+        if (__DEV__) console.error('❌ [Checkout] Failed to fetch existing address:', error);
       }
     };
 
@@ -245,7 +245,7 @@ const CheckoutScreen = () => {
     getCheckoutData().then((savedData) => {
       if (!savedData) return;
 
-      console.log('💾 [Checkout] Loading saved checkout data');
+      if (__DEV__) console.log('💾 [Checkout] Loading saved checkout data');
 
       if (savedData.isHomeDelivery !== undefined) {
         const method = savedData.isHomeDelivery ? 'home' : 'pickup';
@@ -258,7 +258,7 @@ const CheckoutScreen = () => {
 
       // Only apply saved address if it actually has some content
       if (savedData.deliveryAddress && (savedData.deliveryAddress.street || savedData.deliveryAddress.city)) {
-        console.log('📍 [Checkout] Restoring saved address from storage');
+        if (__DEV__) console.log('📍 [Checkout] Restoring saved address from storage');
         setDeliveryAddress(prev => ({ ...prev, ...savedData.deliveryAddress }));
         // If we restored from storage, we can skip the DB pre-fill
         setIsAddressesLoaded(true);
@@ -462,7 +462,7 @@ const CheckoutScreen = () => {
       setOrderIdempotencyKey(idempotencyKey);
     }
 
-    console.log('📡 [createOrder] Creating order with data:', {
+    if (__DEV__) console.log('📡 [createOrder] Creating order with data:', {
       deliveryMethod,
       pickup_point_id: selectedPickupPointId,
       delivery_address: deliveryAddressString,
@@ -514,7 +514,7 @@ const CheckoutScreen = () => {
 
     // ✅ KEY FIX: setTimeout wraps the async work to allow UI paint
     setTimeout(() => {
-      console.log('🕒 [Checkout] Timer fired, starting payment intent creation');
+      if (__DEV__) console.log('🕒 [Checkout] Timer fired, starting payment intent creation');
 
       const processPayment = async () => {
         setIsCreatingPaymentIntent(true);
@@ -571,13 +571,13 @@ const CheckoutScreen = () => {
         }
 
         // 5. Success! 
-        console.log('✅ [handleCreatePaymentIntent] PaymentSheet presented successfully');
+        if (__DEV__) console.log('✅ [handleCreatePaymentIntent] PaymentSheet presented successfully');
         await handlePaymentSuccess(order.id);
       };
 
       processPayment()
         .catch((error: any) => {
-          console.error('❌ [handleCreatePaymentIntent] Error:', error);
+          if (__DEV__) console.error('❌ [handleCreatePaymentIntent] Error:', error);
           errorHaptic();
           setIsProcessing(false);
           setIsCreatingPaymentIntent(false);
@@ -593,7 +593,7 @@ const CheckoutScreen = () => {
           });
         })
         .finally(() => {
-          console.log('🏁 [Checkout] Finally block reached, scheduling hideLoading in 100ms');
+          if (__DEV__) console.log('🏁 [Checkout] Finally block reached, scheduling hideLoading in 100ms');
           setTimeout(() => {
             // Only hide if we are NOT navigating to success (which handles its own loading)
             if (!isPaymentFailureVisible) {
@@ -609,28 +609,28 @@ const CheckoutScreen = () => {
     const orderIdToUse = orderId || createdOrderId;
 
     if (!orderIdToUse) {
-      console.error('❌ [handlePaymentSuccess] No order ID found for success handling');
+      if (__DEV__) console.error('❌ [handlePaymentSuccess] No order ID found for success handling');
       setIsProcessing(false);
       setIsCreatingPaymentIntent(false);
       loading.hideLoading(); // Ensure spinner hides
       return;
     }
 
-    console.log(`✅ [handlePaymentSuccess] Starting success flow for order: ${orderIdToUse}`);
+    if (__DEV__) console.log(`✅ [handlePaymentSuccess] Starting success flow for order: ${orderIdToUse}`);
     setIsProcessing(true);
     loading.showLoading(); // Ensure spinner is shown during finalizing
 
     try {
       // 1. Update order payment status to 'paid' in Supabase
-      console.log(`📡 [handlePaymentSuccess] Updating payment status to "paid" for: ${orderIdToUse}`);
+      if (__DEV__) console.log(`📡 [handlePaymentSuccess] Updating payment status to "paid" for: ${orderIdToUse}`);
 
       // We wrap this in a try-catch so that even if the status update fails, 
       // we still attempt to clean up and navigate to avoid the user getting stuck.
       try {
         await orderService.updatePaymentStatus(orderIdToUse, 'paid');
-        console.log('✅ [handlePaymentSuccess] Status updated successfully');
+        if (__DEV__) console.log('✅ [handlePaymentSuccess] Status updated successfully');
       } catch (statusError) {
-        console.error('⚠️ [handlePaymentSuccess] Status update failed, but proceeding:', statusError);
+        if (__DEV__) console.error('⚠️ [handlePaymentSuccess] Status update failed, but proceeding:', statusError);
       }
 
       // Snapshot items BEFORE cleanup so the receipt can display them
@@ -648,7 +648,7 @@ const CheckoutScreen = () => {
           const fullPhoneNumber = `${country === COUNTRIES.GERMANY ? '+49' : '+45'}${phoneNumber.replace(/\s/g, '')}`;
           // Check if phone needs updating in backend
           if (!user.phone || user.phone !== fullPhoneNumber) {
-            console.log('📱 [handlePaymentSuccess] Syncing new phone number to profile:', fullPhoneNumber);
+            if (__DEV__) console.log('📱 [handlePaymentSuccess] Syncing new phone number to profile:', fullPhoneNumber);
             await userService.updateUserProfile(user.id, { phone: fullPhoneNumber });
           }
 
@@ -661,7 +661,7 @@ const CheckoutScreen = () => {
             });
           }
         } catch (updateErr) {
-          console.warn('Failed to update user profile phone:', updateErr);
+          if (__DEV__) console.warn('Failed to update user profile phone:', updateErr);
         }
       }
 
@@ -672,13 +672,13 @@ const CheckoutScreen = () => {
           clearCheckoutData()
         ]);
       } catch (cleanupErr) {
-        console.warn('⚠️ [handlePaymentSuccess] Cleanup warning:', cleanupErr);
+        if (__DEV__) console.warn('⚠️ [handlePaymentSuccess] Cleanup warning:', cleanupErr);
       }
 
       // Navigation is now handled by SuccessCelebration onComplete
 
     } catch (error: any) {
-      console.error('❌ [handlePaymentSuccess] Error in success flow:', error);
+      if (__DEV__) console.error('❌ [handlePaymentSuccess] Error in success flow:', error);
       warningHaptic();
       setIsProcessing(false);
       setIsCreatingPaymentIntent(false);
@@ -702,16 +702,16 @@ const CheckoutScreen = () => {
 
   // Handle COD order placement
   const handlePlaceCODOrder = async () => {
-    console.log('📦 [handlePlaceCODOrder] Started — isProcessing:', isProcessing, 'deliveryMethod:', deliveryMethod, 'selectedPickupPointId:', selectedPickupPointId);
+    if (__DEV__) console.log('📦 [handlePlaceCODOrder] Started — isProcessing:', isProcessing, 'deliveryMethod:', deliveryMethod, 'selectedPickupPointId:', selectedPickupPointId);
     // Prevent duplicate submissions
     if (isProcessing) {
-      console.warn('⚠️ [handlePlaceCODOrder] Blocked — isProcessing is true');
+      if (__DEV__) console.warn('⚠️ [handlePlaceCODOrder] Blocked — isProcessing is true');
       return;
     }
 
     // Guard: pickup delivery needs a pickup point selected
     if (deliveryMethod === 'pickup' && !selectedPickupPointId) {
-      console.warn('⚠️ [handlePlaceCODOrder] No pickup point selected for pickup delivery');
+      if (__DEV__) console.warn('⚠️ [handlePlaceCODOrder] No pickup point selected for pickup delivery');
       Alert.alert(
         t('checkout.selectPickupPoint'),
         t('checkout.selectPickupPointNote'),
@@ -721,10 +721,10 @@ const CheckoutScreen = () => {
     }
 
     setIsProcessing(true);
-    console.log('🚀 [handlePlaceCODOrder] Calling createOrder...');
+    if (__DEV__) console.log('🚀 [handlePlaceCODOrder] Calling createOrder...');
     try {
       const order = await createOrder();
-      console.log('✅ [handlePlaceCODOrder] Order created:', order.id);
+      if (__DEV__) console.log('✅ [handlePlaceCODOrder] Order created:', order.id);
       // Ensure we have the ID for the callback
       setCreatedOrderId(order.id);
 
@@ -735,7 +735,7 @@ const CheckoutScreen = () => {
           const fullPhoneNumber = `${country === COUNTRIES.GERMANY ? '+49' : '+45'}${phoneNumber.replace(/\s/g, '')}`;
           // Check if phone needs updating in backend
           if (!user.phone || user.phone !== fullPhoneNumber) {
-            console.log('📱 [handlePlaceCODOrder] Syncing new phone number to profile:', fullPhoneNumber);
+            if (__DEV__) console.log('📱 [handlePlaceCODOrder] Syncing new phone number to profile:', fullPhoneNumber);
             await userService.updateUserProfile(user.id, { phone: fullPhoneNumber });
           }
 
@@ -748,7 +748,7 @@ const CheckoutScreen = () => {
             });
           }
         } catch (updateErr) {
-          console.warn('Failed to update user profile phone:', updateErr);
+          if (__DEV__) console.warn('Failed to update user profile phone:', updateErr);
         }
       }
 
@@ -769,13 +769,13 @@ const CheckoutScreen = () => {
           clearCheckoutData()
         ]);
       } catch (cleanupErr) {
-        console.warn('⚠️ [handlePlaceCODOrder] Cleanup warning:', cleanupErr);
+        if (__DEV__) console.warn('⚠️ [handlePlaceCODOrder] Cleanup warning:', cleanupErr);
       }
 
       // Navigation is now handled by SuccessCelebration onComplete
 
     } catch (error: any) {
-      console.error('Error placing COD order:', error);
+      if (__DEV__) console.error('Error placing COD order:', error);
       errorHaptic();
       // Use a plain Alert for COD errors — NOT the payment failure modal (which is only for Stripe)
       const errorMsg = error.message || t('checkout.failedToProcess');
@@ -795,18 +795,18 @@ const CheckoutScreen = () => {
 
   // Handle place order button click
   const handlePlaceOrder = async () => {
-    console.log('🔘 [handlePlaceOrder] Button clicked! isProcessing:', isProcessing, 'paymentMethod:', paymentMethod);
+    if (__DEV__) console.log('🔘 [handlePlaceOrder] Button clicked! isProcessing:', isProcessing, 'paymentMethod:', paymentMethod);
     // Prevent duplicate submissions
     if (isProcessing) {
-      console.warn('⚠️ [handlePlaceOrder] Blocked — isProcessing is true');
+      if (__DEV__) console.warn('⚠️ [handlePlaceOrder] Blocked — isProcessing is true');
       return;
     }
 
     if (paymentMethod === 'cod') {
-      console.log('💰 [handlePlaceOrder] COD path → calling handlePlaceCODOrder');
+      if (__DEV__) console.log('💰 [handlePlaceOrder] COD path → calling handlePlaceCODOrder');
       await handlePlaceCODOrder();
     } else if (paymentMethod === 'online') {
-      console.log('💳 [handlePlaceOrder] Online path');
+      if (__DEV__) console.log('💳 [handlePlaceOrder] Online path');
       if (!paymentIntentClientSecret) {
         // Create payment intent first
         await handleCreatePaymentIntent();
@@ -820,7 +820,7 @@ const CheckoutScreen = () => {
         });
       }
     } else {
-      console.warn('⚠️ [handlePlaceOrder] No payment method selected! paymentMethod =', paymentMethod);
+      if (__DEV__) console.warn('⚠️ [handlePlaceOrder] No payment method selected! paymentMethod =', paymentMethod);
     }
   };
 
@@ -881,7 +881,7 @@ const CheckoutScreen = () => {
 
   if (selectedItems.length === 0 && !isOrderPlaced) { // Check isOrderPlaced
     return (
-      <View style={{ flex: 1, backgroundColor: 'rgba(245, 245, 250, 0.95)' }}>
+      <View style={{ flex: 1, backgroundColor: colors.background.tertiary }}>
         <AppHeader title={t('checkout.title')} showBack showCart={false} />
         <View className="flex-1 justify-center items-center px-8">
           <EmptyState
@@ -896,14 +896,9 @@ const CheckoutScreen = () => {
     );
   }
 
-  const renderStepIndicator = () => {
-    // On small screens, show only icons for non-active steps
-    // On tablets, show full labels with more spacing
-    const showLabels = !isSmall || isTabletDevice;
-    const iconSize = isSmall ? 18 : isTabletDevice ? 24 : 20;
-    const stepIconSize = isSmall ? 8 : isTabletDevice ? 12 : 10;
-    const stepLabelFontSize = getResponsiveFontSize(isSmall ? 9 : isTabletDevice ? 14 : 12, 9, 14);
+  const currentStepIndex = getCurrentStepIndex();
 
+  const stepIndicatorContent = useMemo(() => {
     return (
       <View style={{ backgroundColor: colors.background.default, paddingTop: padding.vertical, paddingBottom: 16 }}>
         <View style={{ marginHorizontal: padding.horizontal }}>
@@ -915,7 +910,7 @@ const CheckoutScreen = () => {
                 height: '100%',
                 backgroundColor: colors.primary[500],
                 borderRadius: 2,
-                width: `${((getCurrentStepIndex()) / (steps.length - 1)) * 100}%`
+                width: `${(currentStepIndex / (steps.length - 1)) * 100}%`
               }}
             />
           </View>
@@ -924,8 +919,8 @@ const CheckoutScreen = () => {
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             {steps.map((step, index) => {
               const isActive = step.key === currentStep;
-              const isCompleted = getCurrentStepIndex() > index;
-              const isAccessible = getCurrentStepIndex() >= index;
+              const isCompleted = currentStepIndex > index;
+              const isAccessible = currentStepIndex >= index;
 
               return (
                 <TouchableOpacity
@@ -950,7 +945,7 @@ const CheckoutScreen = () => {
                     {isCompleted ? (
                       <Icon name="check" size={14} color="white" />
                     ) : (
-                      <Text style={{ // Number instead of icon for inactive
+                      <Text style={{
                         fontSize: 10,
                         color: 'white',
                         fontWeight: 'bold'
@@ -960,7 +955,6 @@ const CheckoutScreen = () => {
                     )}
                   </View>
 
-                  {/* Label - Only show for active or edge steps on small screens, or all on large */}
                   <Text style={{
                     fontSize: 12,
                     color: isActive ? colors.primary[700] : colors.neutral[500],
@@ -975,9 +969,9 @@ const CheckoutScreen = () => {
         </View>
       </View>
     );
-  };
+  }, [currentStep, currentStepIndex, steps, padding]);
 
-  const renderStepContent = () => {
+  const stepContent = useMemo(() => {
     switch (currentStep) {
       case 'summary':
         return (
@@ -1024,7 +1018,7 @@ const CheckoutScreen = () => {
                   flex: 1,
                   paddingVertical: 12,
                   alignItems: 'center',
-                  backgroundColor: deliveryMethod === 'home' ? '#fff' : 'transparent',
+                  backgroundColor: deliveryMethod === 'home' ? colors.white : 'transparent',
                   borderRadius: 8,
                   shadowColor: deliveryMethod === 'home' ? '#000' : 'transparent',
                   shadowOpacity: deliveryMethod === 'home' ? 0.1 : 0,
@@ -1043,7 +1037,7 @@ const CheckoutScreen = () => {
                   flex: 1,
                   paddingVertical: 12,
                   alignItems: 'center',
-                  backgroundColor: deliveryMethod === 'pickup' ? '#fff' : 'transparent',
+                  backgroundColor: deliveryMethod === 'pickup' ? colors.white : 'transparent',
                   borderRadius: 8,
                   shadowColor: deliveryMethod === 'pickup' ? '#000' : 'transparent',
                   shadowOpacity: deliveryMethod === 'pickup' ? 0.1 : 0,
@@ -1093,7 +1087,7 @@ const CheckoutScreen = () => {
                               borderColor: isSelected ? colors.primary[500] : '#e5e7eb',
                               borderRadius: 10,
                               padding: 12,
-                              backgroundColor: isSelected ? colors.primary[50] : '#fff',
+                              backgroundColor: isSelected ? colors.primary[50] : colors.white,
                               minWidth: 180,
                               maxWidth: 220,
                             }}
@@ -1217,7 +1211,7 @@ const CheckoutScreen = () => {
 
             <View style={{
               marginTop: 24,
-              backgroundColor: '#fff',
+              backgroundColor: colors.white,
               borderRadius: 12,
               padding: 16,
               shadowColor: '#000',
@@ -1229,7 +1223,7 @@ const CheckoutScreen = () => {
               <Text style={{
                 fontSize: 18,
                 fontWeight: 'bold',
-                color: '#000',
+                color: colors.text.primary,
                 marginBottom: 16,
               }}>
                 {t('common.phoneNumber')}
@@ -1409,7 +1403,10 @@ const CheckoutScreen = () => {
       default:
         return null;
     }
-  };
+  }, [currentStep, selectedItems, cartSummary, country, padding, isTabletDevice, isLandscapeMode,
+      deliveryMethod, deliveryAddress, selectedPickupPointId, pickupPoints, savedAddresses,
+      selectedAddressId, validationErrors, paymentMethod, phoneNumber, isHomeDelivery,
+      selectedPickupPoint, paymentIntentClientSecret, t]);
 
   const checkoutScrollContent = (
     <ScrollView
@@ -1446,7 +1443,7 @@ const CheckoutScreen = () => {
       )}
 
       <View style={{ flex: 1 }} pointerEvents="box-none">
-        {renderStepContent()}
+        {stepContent}
       </View>
     </ScrollView>
   );
@@ -1524,7 +1521,7 @@ const CheckoutScreen = () => {
           padding: padding.horizontal,
           paddingBottom: Math.max(insets.bottom, 16),
           paddingTop: 16,
-          backgroundColor: '#fff',
+          backgroundColor: colors.white,
           borderTopWidth: 1,
           borderTopColor: colors.neutral[200]
         }}>
@@ -1559,7 +1556,7 @@ const CheckoutScreen = () => {
         >
           {/* ── Hero Section ── */}
           <View style={{
-            backgroundColor: '#fff',
+            backgroundColor: colors.white,
             marginHorizontal: 16,
             marginTop: 20,
             borderRadius: 20,
@@ -1627,7 +1624,7 @@ const CheckoutScreen = () => {
           {/* ── Receipt Card ── */}
           {confirmedOrder && (
             <View style={{
-              backgroundColor: '#fff',
+              backgroundColor: colors.white,
               marginHorizontal: 16,
               marginTop: 12,
               borderRadius: 20,
@@ -1652,7 +1649,7 @@ const CheckoutScreen = () => {
           paddingHorizontal: 24,
           paddingBottom: Math.max(insets.bottom, 16),
           paddingTop: 12,
-          backgroundColor: '#fff',
+          backgroundColor: colors.white,
           borderTopWidth: 1,
           borderTopColor: '#F3F4F6',
           alignItems: 'center',
@@ -1839,7 +1836,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderTopWidth: 1,
     borderTopColor: colors.neutral[200],
     paddingTop: 12,

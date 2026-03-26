@@ -163,7 +163,7 @@ const PaymentsScreen = () => {
                         onPress={() => navigation.goBack()}
                         style={styles.backButton}
                     >
-                        <Icon name="arrow-left" size={24} color="#fff" />
+                        <Icon name="arrow-left" size={24} color={colors.text.inverse} />
                     </TouchableOpacity>
                     <Text
                         style={styles.headerTitle}
@@ -192,7 +192,7 @@ const PaymentsScreen = () => {
                             >
                                 <View style={styles.cardTop}>
                                     <Icon name="chip" size={32} color="rgba(255,255,255,0.8)" />
-                                    <Icon name={getBrandIcon(card.brand)} size={32} color="#fff" />
+                                    <Icon name={getBrandIcon(card.brand)} size={32} color={colors.text.inverse} />
                                 </View>
 
                                 <Text style={styles.cardNumber}>
@@ -239,7 +239,7 @@ const PaymentsScreen = () => {
                     colors={[colors.secondary[400], colors.secondary[600]]}
                     style={styles.fabGradient}
                 >
-                    <Icon name="plus" size={30} color="#fff" />
+                    <Icon name="plus" size={30} color={colors.text.inverse} />
                 </LinearGradient>
             </TouchableOpacity>
 
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#fff',
+        color: colors.text.inverse,
     },
     content: {
         padding: 20,
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     },
     cardNumber: {
         fontSize: 22,
-        color: '#fff',
+        color: colors.text.inverse,
         fontWeight: '600',
         letterSpacing: 2,
         fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     },
     cardValue: {
         fontSize: 14,
-        color: '#fff',
+        color: colors.text.inverse,
         fontWeight: '600',
         textTransform: 'uppercase',
     },

@@ -3,7 +3,7 @@
  * Matching the new UI mockup with FREE DELIVERY badge, ratings, and sold count
  */
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, Pressable, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import ProgressiveImage from './ProgressiveImage';
@@ -80,19 +80,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
     setQuantity(isLoose ? 100 : 1);
   }, [product.id, isLoose]);
 
-  const handlePressIn = () => {
+  const handlePressIn = useCallback(() => {
     scale.value = withTiming(0.98, { duration: ANIMATION_DURATION.fast, easing: EASING.easeOut });
-  };
+  }, [scale]);
 
-  const handlePressOut = () => {
+  const handlePressOut = useCallback(() => {
     scale.value = withTiming(1, { duration: ANIMATION_DURATION.fast, easing: EASING.easeOut });
-  };
+  }, [scale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
-  const handleAddToCart = (e?: any) => {
+  const handleAddToCart = useCallback((e?: any) => {
     if (e && e.stopPropagation) {
       e.stopPropagation();
     }
@@ -109,13 +109,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
         onAddToCart(quantity);
       } else {
         addItem(product, quantity, selectedCountry).catch((error) => {
-          console.error('Error adding to cart:', error);
+          if (__DEV__) console.error('Error adding to cart:', error);
         });
       }
     }
-  };
+  }, [isAuthenticated, productIsInStock, onAddToCart, quantity, addItem, product, selectedCountry]);
 
-  const incrementQty = () => {
+  const incrementQty = useCallback(() => {
     const stockKg = getProductStock(product, selectedCountry);
     const maxQty = isLoose ? stockKg * 1000 : Math.floor(stockKg / ((product.pack_size_grams || 1000) / 1000));
 
@@ -124,15 +124,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
     } else {
       setQuantity(prev => Math.min(maxQty, prev + 1));
     }
-  };
+  }, [product, selectedCountry, isLoose]);
 
-  const decrementQty = () => {
+  const decrementQty = useCallback(() => {
     if (isLoose) {
       setQuantity(prev => Math.max(100, prev - 100)); // Min 100g step
     } else {
       setQuantity(prev => Math.max(1, prev - 1));
     }
-  };
+  }, [isLoose]);
 
   return (
     <AnimatedPressable
@@ -153,8 +153,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
             // Add key to force re-render when image_url changes
             key={`product-card-${product.id}-${product.image_url}`}
             onError={() => {
-              console.error('[ProductCard] ❌ Failed to load image for product:', product.id, product.name);
-              console.error('[ProductCard] Image URL:', product.image_url);
+              if (__DEV__) {
+                console.error('[ProductCard] Failed to load image for product:', product.id, product.name);
+              }
             }}
           />
         ) : (

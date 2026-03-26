@@ -6,7 +6,7 @@ export const useOrders = (userId: string, filters?: { status?: OrderStatus | 'al
   const queryClient = useQueryClient();
 
   return useQuery<Order[]>({
-    queryKey: ['orders', userId, filters],
+    queryKey: ['orders', userId, filters?.status],
     queryFn: async () => {
       const orders = await orderService.getOrders(userId);
       if (filters?.status && filters.status !== 'all') {

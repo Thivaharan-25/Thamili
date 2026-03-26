@@ -228,5 +228,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default OrderSummary;
+export default React.memo(OrderSummary);
 

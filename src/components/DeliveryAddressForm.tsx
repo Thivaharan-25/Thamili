@@ -242,5 +242,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DeliveryAddressForm;
+export default React.memo(DeliveryAddressForm);
 

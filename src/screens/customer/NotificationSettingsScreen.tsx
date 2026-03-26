@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AppHeader, Card, Button } from '../../components';
+import { colors } from '../../theme';
 import { useAuthStore } from '../../store/authStore';
 import { notificationService } from '../../services/notificationService';
 import { isTablet, isSmallDevice, getResponsivePadding, getResponsiveFontSize } from '../../utils/responsive';
@@ -83,7 +84,7 @@ const NotificationSettingsScreen = () => {
               value={pushEnabled}
               onValueChange={setPushEnabled}
               trackColor={{ false: '#ddd', true: '#007AFF' }}
-              thumbColor="#fff"
+              thumbColor={colors.white}
             />
           </View>
         </Card>
@@ -119,7 +120,7 @@ const NotificationSettingsScreen = () => {
               onValueChange={setOrderNotifications}
               disabled={!pushEnabled}
               trackColor={{ false: '#ddd', true: '#007AFF' }}
-              thumbColor="#fff"
+              thumbColor={colors.white}
             />
           </View>
 
@@ -145,7 +146,7 @@ const NotificationSettingsScreen = () => {
               onValueChange={setDeliveryNotifications}
               disabled={!pushEnabled}
               trackColor={{ false: '#ddd', true: '#007AFF' }}
-              thumbColor="#fff"
+              thumbColor={colors.white}
             />
           </View>
 
@@ -171,7 +172,7 @@ const NotificationSettingsScreen = () => {
               onValueChange={setPaymentNotifications}
               disabled={!pushEnabled}
               trackColor={{ false: '#ddd', true: '#007AFF' }}
-              thumbColor="#fff"
+              thumbColor={colors.white}
             />
           </View>
 
@@ -197,7 +198,7 @@ const NotificationSettingsScreen = () => {
               onValueChange={setGeneralNotifications}
               disabled={!pushEnabled}
               trackColor={{ false: '#ddd', true: '#007AFF' }}
-              thumbColor="#fff"
+              thumbColor={colors.white}
             />
           </View>
         </Card>
@@ -217,7 +218,7 @@ const NotificationSettingsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.background.tertiary,
   },
   content: {
     flex: 1,
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
     fontSize: getResponsiveFontSize(18),
     flexShrink: 1,
     fontWeight: 'bold',
-    color: '#000',
+    color: colors.text.primary,
     marginBottom: 16,
   },
   settingRow: {
@@ -248,7 +249,7 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: colors.text.primary,
     marginBottom: 4,
     flexShrink: 1,
   },

@@ -174,27 +174,50 @@ const HomeScreen = () => {
 
   // Removed handleCountrySelect as the dedicated screen is now used
 
-  // Memoized render item
-  const renderProductItem = React.useCallback(({ item, index }: { item: any; index: number }) => {
-    const cardStyle: any = numColumns > 1
+  // Stable style refs to avoid creating new objects each render
+  const gridCardStyle = useMemo((): any => (
+    numColumns > 1
       ? { flex: 1 / numColumns, margin: 8, maxWidth: `${100 / numColumns}%` }
-      : { flex: 1, marginBottom: 16 };
+      : { flex: 1, marginBottom: 16 }
+  ), [numColumns]);
 
+  // Memoized render item — uses stable style ref and avoids inline arrow closures
+  const renderProductItem = React.useCallback(({ item, index }: { item: any; index: number }) => {
     return (
-      <View style={cardStyle}>
+      <View style={gridCardStyle}>
         <ProductCard
           product={item}
           country={country}
           onPress={() => handleProductPress(item.id)}
-          onAddToCart={(qty) => handleAddToCart(item, qty)}
+          onAddToCart={(qty: number) => handleAddToCart(item, qty)}
           index={index}
         />
       </View>
     );
-  }, [country, handleProductPress, handleAddToCart, numColumns]);
+  }, [country, handleProductPress, handleAddToCart, gridCardStyle]);
 
   // Memoized key extractor
   const keyExtractor = React.useCallback((item: any) => item.id, []);
+
+  // Stable helpers for featured FlatList
+  const featuredKeyExtractor = React.useCallback((item: any) => `featured-${item.id}`, []);
+  const featuredContentStyle = useMemo(() => ({ paddingLeft: 24, paddingRight: 24 }), []);
+  const renderFeaturedItem = React.useCallback(({ item, index }: { item: any; index: number }) => (
+    <AnimatedView
+      animation="slide"
+      delay={350 + index * 50}
+      enterFrom="right"
+      style={{ marginRight: 12, width: 165 }}
+    >
+      <ProductCard
+        product={item}
+        country={country}
+        onPress={() => handleProductPress(item.id)}
+        onAddToCart={(qty: number) => handleAddToCart(item, qty)}
+        index={index}
+      />
+    </AnimatedView>
+  ), [country, handleProductPress, handleAddToCart]);
 
   // Memoized Header to prevent remounting search bar on every type
   const HeaderComponent = useMemo(() => (
@@ -270,25 +293,10 @@ const HomeScreen = () => {
           <FlatList
             horizontal
             data={featuredProducts}
-            keyExtractor={(item) => `featured-${item.id}`}
-            renderItem={({ item, index }) => (
-              <AnimatedView
-                animation="slide"
-                delay={350 + index * 50}
-                enterFrom="right"
-                style={{ marginRight: 12, width: 165 }}
-              >
-                <ProductCard
-                  product={item}
-                  country={country}
-                  onPress={() => handleProductPress(item.id)}
-                  onAddToCart={(qty) => handleAddToCart(item, qty)}
-                  index={index}
-                />
-              </AnimatedView>
-            )}
+            keyExtractor={featuredKeyExtractor}
+            renderItem={renderFeaturedItem}
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingLeft: 24, paddingRight: 24 }}
+            contentContainerStyle={featuredContentStyle}
           />
         </AnimatedView>
       )}

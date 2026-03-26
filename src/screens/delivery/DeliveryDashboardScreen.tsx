@@ -10,7 +10,7 @@ import { pickupPointService } from '../../services/pickupPointService';
 import { notificationService } from '../../services/notificationService';
 import { PickupPoint } from '../../types';
 import { useDeliveryRealtime } from '../../hooks/useDeliveryRealtime';
-import { AppHeader, AlertModal, SuccessCelebration } from '../../components';
+import { AppHeader, AlertModal, SuccessCelebration, SkeletonCard } from '../../components';
 import { formatDate } from '../../utils/regionalFormatting';
 import { useTranslation } from 'react-i18next';
 
@@ -324,8 +324,15 @@ const DeliveryDashboardScreen = () => {
 
     if (loading && !refreshing) {
         return (
-            <View style={styles.centered}>
-                <ActivityIndicator size="large" color={colors.primary[500]} />
+            <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+                <AppHeader
+                    title={t('deliveryDashboard.title')}
+                    showCart={false}
+                    showLogo={false}
+                />
+                <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+                    <SkeletonCard type="delivery" count={1} />
+                </View>
             </View>
         );
     }

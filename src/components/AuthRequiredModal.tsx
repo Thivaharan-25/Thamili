@@ -235,4 +235,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default AuthRequiredModal;
+export default React.memo(AuthRequiredModal);

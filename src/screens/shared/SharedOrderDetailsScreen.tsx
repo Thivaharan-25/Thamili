@@ -584,7 +584,7 @@ const SharedOrderDetailsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F8FAFC' },
+    container: { flex: 1, backgroundColor: colors.background.secondary },
     headerContainer: { marginBottom: 0 },
     headerBackground: { paddingHorizontal: 20, paddingBottom: 40, borderBottomLeftRadius: 24, borderBottomRightRadius: 24, zIndex: 10 },
     headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
@@ -628,12 +628,12 @@ const styles = StyleSheet.create({
     totalLabel: { fontSize: 16, fontWeight: '700', color: colors.navy[900] },
     totalValue: { fontSize: 18, fontWeight: '800', color: colors.navy[700] },
 
-    cancelButton: { marginTop: 16, marginBottom: 32, paddingVertical: 16, borderRadius: 16, backgroundColor: '#FFF1F2', borderWidth: 1, borderColor: '#FFE4E6', alignItems: 'center' },
+    cancelButton: { marginTop: 16, marginBottom: 32, paddingVertical: 16, borderRadius: 16, backgroundColor: colors.error[50], borderWidth: 1, borderColor: colors.error[100], alignItems: 'center' },
     cancelButtonText: { fontSize: 16, fontWeight: '700', color: colors.error[600], marginLeft: 8 },
 
-    footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, backgroundColor: 'white', borderTopLeftRadius: 24, borderTopRightRadius: 24, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 8 },
+    footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, backgroundColor: colors.white, borderTopLeftRadius: 24, borderTopRightRadius: 24, elevation: 10, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 8 },
     deliveryActionBtn: { backgroundColor: colors.primary[600], paddingVertical: 16, borderRadius: 14, alignItems: 'center' },
-    deliveryActionText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+    deliveryActionText: { color: colors.text.inverse, fontWeight: 'bold', fontSize: 16 },
 
     // Assignment UI for Admin
     assignedPartnerContainer: {

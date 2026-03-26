@@ -9,7 +9,7 @@ export const useProducts = (filters?: ProductFilters) => {
   const cachedProducts = useProductStore((state) => state.products);
 
   return useQuery<Product[]>({
-    queryKey: ['products', filters],
+    queryKey: ['products', filters?.active, filters?.search, filters?.category],
     queryFn: async ({ signal }) => {
       const products = await withTimeout(
         productService.getProducts(filters, signal),

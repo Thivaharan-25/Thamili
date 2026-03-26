@@ -472,6 +472,10 @@ const AdminOrdersScreen = () => {
               icon="package-variant"
               title={t('admin.orders.noOrdersFound')}
               message={t('admin.orders.tryAdjustingFilters')}
+              suggestions={[
+                t('admin.orders.filterSuggestion1', { defaultValue: 'Try selecting a different status filter' }),
+                t('admin.orders.filterSuggestion2', { defaultValue: 'Check if the date range is correct' }),
+              ]}
             />
           )
         }
