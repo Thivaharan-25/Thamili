@@ -546,6 +546,10 @@ const AdminProductsScreen = () => {
         showsVerticalScrollIndicator={false}
         numColumns={isTabletDevice ? 2 : 1}
         key={isTabletDevice ? 'grid' : 'list'}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        removeClippedSubviews={Platform.OS === 'android'}
         ListEmptyComponent={
           !isLoading ? (
             <View style={{ marginTop: 40 }}>

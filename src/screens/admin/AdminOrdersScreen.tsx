@@ -462,6 +462,11 @@ const AdminOrdersScreen = () => {
         renderItem={renderOrderItem}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        removeClippedSubviews={Platform.OS === 'android'}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           isLoading ? (
             <View style={{ padding: 20 }}>
