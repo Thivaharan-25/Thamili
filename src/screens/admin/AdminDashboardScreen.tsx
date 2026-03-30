@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../store/authStore';
 import { orderService } from '../../services/orderService';
 import { productService } from '../../services/productService';
+import { QUERY_KEYS } from '../../constants/queryKeys';
 import { useOrderRealtime } from '../../hooks/useOrderRealtime';
 import { useLoading } from '../../contexts/LoadingContext';
 import { AnimatedView, AdminDashboardSkeleton, GlassStatCard } from '../../components';
@@ -66,7 +67,7 @@ const AdminDashboardScreen = () => {
     refetch: refetchOrders,
     isRefetching: refetchingOrders
   } = useQuery({
-    queryKey: ['allOrders'],
+    queryKey: QUERY_KEYS.allOrders(),
     queryFn: () => orderService.getAllOrders(),
     retry: 1,
     staleTime: 2 * 60 * 1000, // 2 minutes — avoid refetch on every focus
@@ -79,7 +80,7 @@ const AdminDashboardScreen = () => {
     refetch: refetchProducts,
     isRefetching: refetchingProducts
   } = useQuery({
-    queryKey: ['products'],
+    queryKey: QUERY_KEYS.products(true),
     queryFn: () => productService.getProducts({ active: true }),
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes — products change less often

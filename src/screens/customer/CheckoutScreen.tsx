@@ -14,7 +14,8 @@ import { RootStackParamList, PaymentMethod, Order, OrderItem } from '../../types
 import { useCartStore } from '../../store/cartStore';
 import { useAuthStore } from '../../store/authStore';
 import { useLoading } from '../../contexts/LoadingContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '../../constants/queryKeys';
 import { userService, pickupPointService, addressService, orderService } from '../../services';
 
 import { stripeService } from '../../services/stripeService';
@@ -77,6 +78,7 @@ const CheckoutScreen = () => {
   const selectedItems = useMemo(() => items.filter(i => i.isSelected), [items]);
   const { showToast } = useToast();
   const loading = useLoading();
+  const queryClient = useQueryClient();
   const { retrievePaymentIntent, initPaymentSheet, presentPaymentSheet } = useStripe();
 
   // Use user's country preference if authenticated, otherwise use selected country from cart store
@@ -287,7 +289,7 @@ const CheckoutScreen = () => {
 
   // Fetch saved addresses for address selector
   const { data: savedAddresses = [] } = useQuery({
-    queryKey: ['addresses', user?.id],
+    queryKey: QUERY_KEYS.savedAddresses(user?.id ?? ''),
     queryFn: () => addressService.getUserAddresses(user!.id),
     enabled: !!user?.id,
     staleTime: 1000 * 60 * 5,
@@ -633,6 +635,11 @@ const CheckoutScreen = () => {
         if (__DEV__) console.error('⚠️ [handlePaymentSuccess] Status update failed, but proceeding:', statusError);
       }
 
+      // Invalidate orders cache so OrdersScreen shows the new order immediately
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ordersAll() });
+      }
+
       // Snapshot items BEFORE cleanup so the receipt can display them
       setSnapshotOrderItems([...selectedItems]);
 
@@ -727,6 +734,11 @@ const CheckoutScreen = () => {
       if (__DEV__) console.log('✅ [handlePlaceCODOrder] Order created:', order.id);
       // Ensure we have the ID for the callback
       setCreatedOrderId(order.id);
+
+      // Invalidate orders cache so OrdersScreen shows the new order immediately
+      if (user?.id) {
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ordersAll() });
+      }
 
       // Update local user state AND backend immediately with the new phone number
       // This ensures Edit Profile screen shows it without needing a refresh

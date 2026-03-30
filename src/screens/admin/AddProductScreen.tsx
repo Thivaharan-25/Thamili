@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList, ProductCategory } from '../../types';
 import { productService } from '../../services/productService';
+import { QUERY_KEYS } from '../../constants/queryKeys';
 import { useLoading } from '../../contexts/LoadingContext';
 import { Input, Button, ErrorMessage, SuccessCelebration } from '../../components';
 import { PRODUCT_CATEGORIES } from '../../constants';
@@ -118,7 +119,7 @@ const AddProductScreen = () => {
       );
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.productsAll() });
       setShowSuccessModal(true);
     },
     onError: (error: any) => {

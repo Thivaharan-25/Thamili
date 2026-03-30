@@ -6,6 +6,7 @@
 import { useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { orderService } from '../services/orderService';
+import { QUERY_KEYS } from '../constants/queryKeys';
 
 interface UseOrderPollingOptions {
   orderId: string;
@@ -24,7 +25,7 @@ export function useOrderPolling({
   const previousStatusRef = useRef<string | null>(null);
 
   const { data: order, isLoading, error } = useQuery({
-    queryKey: ['order', orderId],
+    queryKey: QUERY_KEYS.order(orderId),
     queryFn: () => orderService.getOrderById(orderId),
     enabled: enabled && !!orderId,
     refetchInterval: enabled ? pollInterval : false,
@@ -47,8 +48,8 @@ export function useOrderPolling({
   // Invalidate related queries when order status changes
   useEffect(() => {
     if (order) {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['order', orderId] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ordersAll() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.order(orderId) });
     }
   }, [order?.status, orderId, queryClient]);
 
