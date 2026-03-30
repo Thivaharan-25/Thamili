@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, RefreshControl, Dimensions, Image, Platform } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, RefreshControl, Dimensions, Image, Platform, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -18,7 +18,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useProducts } from '../../hooks/useProducts';
 import { useCartStore } from '../../store/cartStore';
 import { useLoading } from '../../contexts/LoadingContext';
-import { ProductCard, SearchBar, FilterBar, EmptyState, LoadingScreen, ErrorMessage, Button, AnimatedView, SkeletonCard, ContentFadeIn, SkeletonLoader, PromotionalBanner, CategoryIconRow, RecentlyViewedProducts, TrendingProducts, ProductRecommendations, useToast, AuthRequiredModal, HomeHeader } from '../../components';
+import { ProductCard, SearchBar, FilterBar, EmptyState, ErrorMessage, Button, AnimatedView, SkeletonCard, ContentFadeIn, SkeletonLoader, PromotionalBanner, CategoryIconRow, RecentlyViewedProducts, TrendingProducts, ProductRecommendations, useToast, AuthRequiredModal, HomeHeader } from '../../components';
 import { getFilteredProducts, isProductWeightBased } from '../../utils/productUtils';
 import { debounce } from '../../utils/debounce';
 import { requireAuth } from '../../utils/requireAuth';
@@ -301,35 +301,27 @@ const HomeScreen = () => {
         </AnimatedView>
       )}
 
-      {/* Recently Viewed */}
+      {/* Recently Viewed — header rendered inside component, only shows when it has content */}
       {!searchQuery && selectedCategory === 'all' && isAuthenticated && (
-        <AnimatedView animation="fade" delay={400} style={{ marginBottom: 32 }}>
-          <View className="px-6 mb-4">
-            <Text className="text-xl font-bold text-neutral-900 tracking-tight">{t('home.recentlyViewed')}</Text>
-          </View>
+        <AnimatedView animation="fade" delay={400}>
           <RecentlyViewedProducts
             products={products}
             country={country}
             onProductPress={handleProductPress}
             limit={10}
-            hideHeader={true}
           />
         </AnimatedView>
       )}
 
-      {/* Recommended */}
+      {/* Recommended — header rendered inside component, only shows when it has content */}
       {!searchQuery && selectedCategory === 'all' && isAuthenticated && (
-        <AnimatedView animation="fade" delay={500} style={{ marginBottom: 32 }}>
-          <View className="px-6 mb-4">
-            <Text className="text-xl font-bold text-neutral-900 tracking-tight">{t('home.recommendedForYou')}</Text>
-          </View>
+        <AnimatedView animation="fade" delay={500}>
           <ProductRecommendations
             userId={user?.id}
             country={country}
             onProductPress={handleProductPress}
             onAddToCart={handleAddToCart}
             limit={5}
-            hideHeader={true}
           />
         </AnimatedView>
       )}
@@ -386,24 +378,88 @@ const HomeScreen = () => {
     toggleLanguage
   ]);
 
-  // Show loading skeleton only on initial load
+  // Show loading skeleton only on initial load (empty cache)
   if (isLoading && products.length === 0) {
-    if (isAuthenticated && (user?.role?.toLowerCase().trim() === 'admin')) {
-      return (
-        <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
-          <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: 'rgba(58, 181, 209, 0.1)' }}>
-            <SkeletonLoader width="100%" height={48} borderRadius={12} className="mb-4" />
-            <SkeletonLoader width="60%" height={32} borderRadius={8} />
+    return (
+      <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+        <ScrollView scrollEnabled={false} showsVerticalScrollIndicator={false}>
+          {/* HomeHeader skeleton */}
+          <View style={{ backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingTop: insets.top + 16, paddingBottom: 36, borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <View>
+                <SkeletonLoader width={110} height={13} borderRadius={7} style={{ marginBottom: 8 }} />
+                <SkeletonLoader width={190} height={26} borderRadius={8} />
+              </View>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <SkeletonLoader width={38} height={38} borderRadius={19} />
+                <SkeletonLoader width={38} height={38} borderRadius={19} />
+              </View>
+            </View>
+            <SkeletonLoader width={80} height={26} borderRadius={13} style={{ marginTop: 10 }} />
           </View>
-          <View className="px-4 pt-4">
-            <SkeletonCard type="product" count={3} />
-          </View>
-        </View>
-      );
-    }
 
-    // Guest Users or Customers get the complex LoadingScreen skeleton
-    return <LoadingScreen message={t('common.loading')} />;
+          {/* Search bar + filter skeleton — overlaps header bottom */}
+          <View style={{ paddingHorizontal: 16, marginTop: -20, marginBottom: 20, zIndex: 10 }}>
+            <SkeletonLoader width="100%" height={48} borderRadius={12} style={{ marginBottom: 12 }} />
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {[72, 65, 88, 60].map((w, i) => (
+                <SkeletonLoader key={i} width={w} height={32} borderRadius={16} />
+              ))}
+            </View>
+          </View>
+
+          {/* Category icon row skeleton */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 16, marginBottom: 28 }}>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <View key={i} style={{ alignItems: 'center', gap: 6 }}>
+                <SkeletonLoader width={52} height={52} borderRadius={26} />
+                <SkeletonLoader width={36} height={11} borderRadius={6} />
+              </View>
+            ))}
+          </View>
+
+          {/* Featured products section skeleton */}
+          <View style={{ marginBottom: 32 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, marginBottom: 14 }}>
+              <SkeletonLoader width={155} height={22} borderRadius={8} />
+              <SkeletonLoader width={48} height={15} borderRadius={7} />
+            </View>
+            <View style={{ flexDirection: 'row', paddingLeft: 24, gap: 12 }}>
+              {[1, 2, 3].map((i) => (
+                <View key={i} style={{ width: 165 }}>
+                  <SkeletonLoader width={165} height={170} borderRadius={12} style={{ marginBottom: 10 }} />
+                  <SkeletonLoader width={120} height={15} borderRadius={6} style={{ marginBottom: 7 }} />
+                  <SkeletonLoader width={70} height={13} borderRadius={6} />
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* All products section header skeleton */}
+          <View style={{ paddingHorizontal: 24, marginBottom: 16 }}>
+            <SkeletonLoader width={145} height={22} borderRadius={8} style={{ marginBottom: 6 }} />
+            <SkeletonLoader width={95} height={11} borderRadius={6} />
+          </View>
+
+          {/* Products grid skeleton — 2 columns */}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 4 }}>
+            {[1, 2, 3, 4].map((i) => (
+              <View key={i} style={{ flex: 1, margin: 8, maxWidth: '50%' }}>
+                <View style={{ backgroundColor: '#FFFFFF', borderRadius: 12, padding: 12 }}>
+                  <SkeletonLoader width="100%" height={155} borderRadius={10} style={{ marginBottom: 10 }} />
+                  <SkeletonLoader width="75%" height={15} borderRadius={6} style={{ marginBottom: 8 }} />
+                  <SkeletonLoader width="45%" height={13} borderRadius={6} style={{ marginBottom: 12 }} />
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <SkeletonLoader width={55} height={22} borderRadius={6} />
+                    <SkeletonLoader width={76} height={34} borderRadius={8} />
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
+    );
   }
 
   // Handle errors gracefully - don't block the whole screen

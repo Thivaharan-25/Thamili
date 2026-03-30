@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../services/supabase';
+import { QUERY_KEYS } from '../constants/queryKeys';
 
 export const useDeliveryRealtime = (deliveryPartnerId: string, onUpdate?: () => void) => {
   const queryClient = useQueryClient();
@@ -15,7 +16,7 @@ export const useDeliveryRealtime = (deliveryPartnerId: string, onUpdate?: () => 
       .on('*', (payload: any) => {
         console.log('⚡ Delivery schedule update received:', payload);
         // Invalidate queries to trigger refetch
-        queryClient.invalidateQueries({ queryKey: ['deliverySchedules'] });
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deliverySchedules() });
         if (onUpdate) onUpdate();
       })
       .subscribe((status: string) => {

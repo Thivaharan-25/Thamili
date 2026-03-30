@@ -683,25 +683,12 @@ export const orderService = {
         try {
           const supabase = getSupabase();
           
-          // 1. Fetch order details
+          // 1. Fetch order details (order_items are joined inside getOrderById)
           const order = await this.getOrderById(orderId);
           if (!order) {
             throw new Error('Order not found');
           }
-          const orderItems = await this.getOrderItems(orderId);
-          const { calculateItemSubtotalValue } = require('../utils/productUtils');
-          const subtotal = orderItems.reduce((sum, item) => {
-            // item.product is not available here, but we can't easily fetch it
-            // However, the item subtotal in DB might still be wrong if it was created with old logic
-            // For cancellation refund, we should probably trust the stored subtotal if it's already there,
-            // or recalculate if we can. 
-            // Actually, for consistency with the display, let's just use the item.subtotal 
-            // ONLY if we can't easily get the product details.
-            // But wait, OrderItem has 'subtotal'. If that was saved wrong, the refund might be wrong.
-            return sum + item.subtotal;
-          }, 0);
           const deliveryFee = typeof order.delivery_fee === 'number' ? order.delivery_fee : 0;
-          const refundEpsilon = 0.01;
 
           // 2. Initial validation - can only cancel pending or confirmed orders
           const cancellableStatuses: OrderStatus[] = ['pending', 'confirmed'];
@@ -736,11 +723,8 @@ export const orderService = {
             console.log(`[orderService] Triggering refund for order ${orderId}...`);
             const { stripeService } = require('./stripeService');
             
-            // Wait for Stripe response
-            let refundAmount = order.total_amount;
-            if (deliveryFee > 0 && refundAmount < subtotal + deliveryFee - refundEpsilon) {
-              refundAmount = refundAmount + deliveryFee;
-            }
+            // Refund the full stored total (already includes delivery + payment fees)
+            const refundAmount = order.total_amount;
             const refundResult = await stripeService.refundPayment(orderId, refundAmount);
             
             if (!refundResult.success) {

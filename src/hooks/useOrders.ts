@@ -1,12 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { orderService } from '../services/orderService';
 import { Order, OrderStatus } from '../types';
+import { QUERY_KEYS } from '../constants/queryKeys';
 
 export const useOrders = (userId: string, filters?: { status?: OrderStatus | 'all' }) => {
   const queryClient = useQueryClient();
 
   return useQuery<Order[]>({
-    queryKey: ['orders', userId, filters?.status],
+    queryKey: QUERY_KEYS.orders(userId, filters?.status),
     queryFn: async () => {
       const orders = await orderService.getOrders(userId);
       if (filters?.status && filters.status !== 'all') {
@@ -16,7 +17,7 @@ export const useOrders = (userId: string, filters?: { status?: OrderStatus | 'al
     },
     placeholderData: () => {
       // Show all-orders cache while filtered query loads
-      const allOrders = queryClient.getQueryData<Order[]>(['orders', userId, undefined]);
+      const allOrders = queryClient.getQueryData<Order[]>(QUERY_KEYS.orders(userId, undefined));
       if (!allOrders) return undefined;
       if (filters?.status && filters.status !== 'all') {
         return allOrders.filter((o) => o.status === filters.status);
@@ -30,7 +31,7 @@ export const useOrders = (userId: string, filters?: { status?: OrderStatus | 'al
 
 export const useOrder = (orderId: string) => {
   return useQuery<Order | null>({
-    queryKey: ['order', orderId],
+    queryKey: QUERY_KEYS.order(orderId),
     queryFn: () => orderService.getOrderById(orderId),
     enabled: !!orderId,
   });
@@ -38,7 +39,7 @@ export const useOrder = (orderId: string) => {
 
 export const useOrderItems = (orderId: string) => {
   return useQuery({
-    queryKey: ['orderItems', orderId],
+    queryKey: QUERY_KEYS.orderItems(orderId),
     queryFn: () => orderService.getOrderItems(orderId),
     enabled: !!orderId,
   });

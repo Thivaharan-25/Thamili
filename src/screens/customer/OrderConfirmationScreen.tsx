@@ -8,6 +8,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { useQuery } from '@tanstack/react-query';
 import { orderService } from '../../services/orderService';
+import { QUERY_KEYS } from '../../constants/queryKeys';
 import { pickupPointService } from '../../services';
 import { productService } from '../../services/productService';
 import { AppHeader, OrderReceipt, Button, LoadingScreen, ErrorMessage, SuccessCelebration } from '../../components';
@@ -37,14 +38,14 @@ const OrderConfirmationScreen = () => {
 
   // Fetch order
   const { data: order, isLoading: loadingOrder, error: orderError } = useQuery({
-    queryKey: ['order', orderId],
+    queryKey: QUERY_KEYS.order(orderId),
     queryFn: () => orderService.getOrderById(orderId),
     enabled: !!orderId,
   });
 
   // Fetch order items
   const { data: orderItems = [], isLoading: loadingItems } = useQuery({
-    queryKey: ['orderItems', orderId],
+    queryKey: QUERY_KEYS.orderItems(orderId),
     queryFn: () => orderService.getOrderItems(orderId),
     enabled: !!orderId,
   });
@@ -60,7 +61,7 @@ const OrderConfirmationScreen = () => {
 
   // Fetch product details for order items
   const { data: products = [] } = useQuery({
-    queryKey: ['products'],
+    queryKey: QUERY_KEYS.products(true),
     queryFn: () => productService.getProducts({ active: true }),
   });
 

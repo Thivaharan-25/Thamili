@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Order } from '../types';
+import { QUERY_KEYS } from '../constants/queryKeys';
 
 // Lazy import Supabase to avoid initialization during module load
 function getSupabase() {
@@ -36,15 +37,15 @@ export const useOrderRealtime = (userId: string) => {
               clearTimeout(debounceTimer.current);
             }
             debounceTimer.current = setTimeout(() => {
-              queryClient.invalidateQueries({ queryKey: ['orders', userId] });
+              queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ordersAll() });
 
               if (payload.new && 'id' in payload.new) {
                 queryClient.invalidateQueries({
-                  queryKey: ['order', (payload.new as Order).id],
+                  queryKey: QUERY_KEYS.order((payload.new as Order).id),
                 });
               }
               // Also invalidate allOrders cache for admin dashboard
-              queryClient.invalidateQueries({ queryKey: ['allOrders'] });
+              queryClient.invalidateQueries({ queryKey: QUERY_KEYS.allOrders() });
             }, 300);
           })
           .subscribe();

@@ -22,6 +22,7 @@ import { Button } from 'react-native-paper';
 
 import { RootStackParamList, OrderStatus } from '../../types';
 import { orderService } from '../../services/orderService';
+import { QUERY_KEYS } from '../../constants/queryKeys';
 import { useOrderRealtime } from '../../hooks/useOrderRealtime';
 import { useAuthStore } from '../../store/authStore';
 import { EmptyState, SkeletonCard, AnimatedView, GlassStatCard } from '../../components';
@@ -93,7 +94,7 @@ const AdminOrdersScreen = () => {
     refetch,
     isRefetching,
   } = useQuery({
-    queryKey: ['allOrders'],
+    queryKey: QUERY_KEYS.allOrders(),
     queryFn: () => orderService.getAllOrders(),
   });
 
@@ -462,6 +463,11 @@ const AdminOrdersScreen = () => {
         renderItem={renderOrderItem}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        removeClippedSubviews={Platform.OS === 'android'}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           isLoading ? (
             <View style={{ padding: 20 }}>
@@ -490,7 +496,7 @@ const AdminOrdersScreen = () => {
           setIsSelectionMode(false); // Reset selection if dismissed without assigning
         }}
         onAssignSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['allOrders'] });
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.allOrders() });
           setSuccessMessage({
             title: t('common.success'),
             message: t('admin.orders.assignedSuccess')

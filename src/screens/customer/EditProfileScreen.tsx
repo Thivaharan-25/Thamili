@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Platform, KeyboardAvoidingView, ActivityIndicator, Pressable, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '../../constants/queryKeys';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -48,6 +50,7 @@ const EditProfileScreen = () => {
   const { t } = useTranslation();
   const { user, setUser } = useAuthStore();
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState<Country>(COUNTRIES.GERMANY);
@@ -101,6 +104,7 @@ const EditProfileScreen = () => {
       });
 
       setUser(updatedUser);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.userProfile(user.id) });
       showToast({
         message: 'Profile updated successfully',
         type: 'success',

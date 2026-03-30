@@ -160,6 +160,8 @@ const MainTabs = () => {
     headerShown: false,
     // White background prevents the black flash during tab navigator remount
     sceneContainerStyle: { backgroundColor: 'white' },
+    // Only mount a tab screen when it is first visited — saves memory + startup time
+    lazy: true,
   };
 
   if (!isAuthenticated) {

@@ -9,6 +9,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
 import { RootStackParamList, OrderStatus, DeliveryStatus } from '../../types';
+import { QUERY_KEYS } from '../../constants/queryKeys';
 import { useAuthStore } from '../../store/authStore';
 import { useCartStore } from '../../store/cartStore';
 import { orderService } from '../../services/orderService';
@@ -78,7 +79,7 @@ const SharedOrderDetailsScreen = () => {
 
     // 1. If we only have scheduleId (from Delivery Dashboard), fetch schedule first to get orderId
     const { data: initialSchedule, isLoading: loadingInitialSchedule } = useQuery({
-        queryKey: ['deliverySchedule', scheduleId],
+        queryKey: QUERY_KEYS.deliverySchedule(scheduleId!),
         queryFn: () => deliveryService.getDeliveryScheduleById(scheduleId!),
         enabled: !!scheduleId && !orderId,
     });
@@ -90,7 +91,7 @@ const SharedOrderDetailsScreen = () => {
 
     // 2. Fetch Order
     const { data: order, isLoading: loadingOrder, error: orderError } = useQuery({
-        queryKey: ['order', effectiveOrderId],
+        queryKey: QUERY_KEYS.order(effectiveOrderId!),
         queryFn: () => orderService.getOrderById(effectiveOrderId!),
         enabled: !!effectiveOrderId,
     });
@@ -114,20 +115,20 @@ const SharedOrderDetailsScreen = () => {
 
     // 3. Fetch Items
     const { data: orderItems = [], isLoading: loadingItems } = useQuery({
-        queryKey: ['orderItems', effectiveOrderId],
+        queryKey: QUERY_KEYS.orderItems(effectiveOrderId!),
         queryFn: () => orderService.getOrderItems(effectiveOrderId!),
         enabled: !!effectiveOrderId,
     });
 
     // 4. Fetch Products
     const { data: products = [] } = useQuery({
-        queryKey: ['products'],
+        queryKey: QUERY_KEYS.products(true),
         queryFn: () => productService.getProducts({ active: true }),
     });
 
     // 5. Fetch Schedule (if we don't have it yet and we have an orderId)
     const { data: fetchedSchedule } = useQuery({
-        queryKey: ['deliveryScheduleByOrder', effectiveOrderId],
+        queryKey: QUERY_KEYS.deliveryScheduleByOrder(effectiveOrderId!),
         queryFn: () => deliveryService.getDeliveryScheduleByOrderId(effectiveOrderId!),
         enabled: !!effectiveOrderId && !scheduleId,
         retry: false, // If no schedule found, don't keep retrying
@@ -208,8 +209,8 @@ const SharedOrderDetailsScreen = () => {
         try {
             setIsCancelling(true);
             await orderService.cancelOrder(activeOrder.id);
-            queryClient.invalidateQueries({ queryKey: ['order', activeOrder.id] });
-            queryClient.invalidateQueries({ queryKey: ['orders'] });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.order(activeOrder.id) });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ordersAll() });
             setShowCancelModal(false);
             setSuccessMessage({ title: t('common.success'), message: t('orders.cancelSuccess') });
             setSuccessModalVisible(true);
@@ -226,8 +227,8 @@ const SharedOrderDetailsScreen = () => {
         try {
             setIsUpdatingStatus(true);
             await deliveryService.updateDeliverySchedule(schedule.id, { status: newStatus });
-            queryClient.invalidateQueries({ queryKey: ['deliverySchedule', schedule.id] });
-            queryClient.invalidateQueries({ queryKey: ['order', activeOrder.id] });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deliverySchedule(schedule.id) });
+            queryClient.invalidateQueries({ queryKey: QUERY_KEYS.order(activeOrder.id) });
         } catch (error) {
             Alert.alert(t('common.error'), t('errors.updateFailed'));
         } finally {
@@ -366,9 +367,9 @@ const SharedOrderDetailsScreen = () => {
                                 }
                                 try {
                                     await orderService.updateOrderStatus(activeOrder.id, newStatus);
-                                    queryClient.invalidateQueries({ queryKey: ['order', activeOrder.id] });
-                                    queryClient.invalidateQueries({ queryKey: ['orders'] });
-                                    queryClient.invalidateQueries({ queryKey: ['allOrders'] });
+                                    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.order(activeOrder.id) });
+                                    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.ordersAll() });
+                                    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.allOrders() });
                                     setSuccessMessage({ title: t('common.success'), message: t('delivery.statusUpdated') });
                                     setSuccessModalVisible(true);
                                 } catch (error: any) {
@@ -552,9 +553,9 @@ const SharedOrderDetailsScreen = () => {
                     setRequestedStatus(undefined);
                 }}
                 onAssignSuccess={() => {
-                    queryClient.invalidateQueries({ queryKey: ['order', activeOrder.id] });
-                    queryClient.invalidateQueries({ queryKey: ['deliveryScheduleByOrder', activeOrder.id] });
-                    queryClient.invalidateQueries({ queryKey: ['allOrders'] });
+                    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.order(activeOrder.id) });
+                    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deliveryScheduleByOrder(activeOrder.id) });
+                    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.allOrders() });
 
                     const successMsg = requestedStatus === 'out_for_delivery'
                         ? t('delivery.outForDeliverySuccess')

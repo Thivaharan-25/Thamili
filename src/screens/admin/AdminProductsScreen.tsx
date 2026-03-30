@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { RootStackParamList, Product, ProductCategory } from '../../types';
 import { useAuthStore } from '../../store/authStore';
 import { productService } from '../../services/productService';
+import { QUERY_KEYS } from '../../constants/queryKeys';
 import {
   AppHeader,
   Button,
@@ -83,7 +84,7 @@ const AdminProductsScreen = () => {
   };
 
   const { data: products = [], isLoading, error } = useQuery<Product[], Error>({
-    queryKey: ['products', 'all'],
+    queryKey: QUERY_KEYS.productsAll(),
     queryFn: () => productService.getProducts(),
   });
 
@@ -105,7 +106,7 @@ const AdminProductsScreen = () => {
 
     mutationFn: (productId: string) => productService.deleteProduct(productId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.productsAll() });
       successHaptic();
     },
     onError: (error: any) => {
@@ -118,7 +119,7 @@ const AdminProductsScreen = () => {
       productService.toggleRegionalProductActive(productId, country, active),
     onMutate: async ({ productId, country, active }) => {
       console.log(`[RegionalStatusToggle] Starting mutation for ${productId} (${country}) to ${active}`);
-      await queryClient.cancelQueries({ queryKey: ['products'] });
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.productsAll() });
       const previousProducts = queryClient.getQueryData<Product[]>(['products', 'all']);
 
       if (previousProducts) {
@@ -149,7 +150,7 @@ const AdminProductsScreen = () => {
       Alert.alert(t('common.error'), error.message || t('admin.products.failedToUpdate'));
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.productsAll() });
     },
   });
 
@@ -159,7 +160,7 @@ const AdminProductsScreen = () => {
     onMutate: async ({ productId, active }) => {
       console.log(`[StatusToggle] Starting mutation for ${productId} to ${active}`);
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['products'] });
+      await queryClient.cancelQueries({ queryKey: QUERY_KEYS.productsAll() });
 
       // Snapshot previous value
       const previousProducts = queryClient.getQueryData<Product[]>(['products', 'all']);
@@ -199,7 +200,7 @@ const AdminProductsScreen = () => {
     onSettled: (data, error, variables) => {
       console.log(`[StatusToggle] Mutation settled for ${variables.productId}`);
       // Sync with server
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.productsAll() });
     },
   });
 
@@ -546,6 +547,10 @@ const AdminProductsScreen = () => {
         showsVerticalScrollIndicator={false}
         numColumns={isTabletDevice ? 2 : 1}
         key={isTabletDevice ? 'grid' : 'list'}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        removeClippedSubviews={Platform.OS === 'android'}
         ListEmptyComponent={
           !isLoading ? (
             <View style={{ marginTop: 40 }}>

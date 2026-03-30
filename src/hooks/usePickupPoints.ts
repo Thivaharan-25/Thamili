@@ -3,13 +3,14 @@ import { pickupPointService } from '../services/pickupPointService';
 import { PickupPoint } from '../types';
 import { useProductStore } from '../store/productStore';
 import { withTimeout, DEFAULT_TIMEOUTS } from '../utils/requestTimeout';
+import { QUERY_KEYS } from '../constants/queryKeys';
 
 export const usePickupPoints = (country?: string) => {
   const setPickupPoints = useProductStore((state) => state.setPickupPoints);
   const cachedPoints = useProductStore((state) => state.pickupPoints);
 
   return useQuery<PickupPoint[]>({
-    queryKey: ['pickupPoints', country],
+    queryKey: QUERY_KEYS.pickupPoints(country),
     queryFn: async () => {
       const points = await withTimeout(
         pickupPointService.getPickupPoints(country),

@@ -8,6 +8,7 @@ import { Image } from 'expo-image';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { RootStackParamList, ProductCategory, Product } from '../../types';
 import { productService } from '../../services/productService';
+import { QUERY_KEYS } from '../../constants/queryKeys';
 import { Input, Button, ErrorMessage, LoadingScreen, SuccessCelebration } from '../../components';
 import { PRODUCT_CATEGORIES } from '../../constants';
 import { isTablet, isSmallDevice, getResponsivePadding } from '../../utils/responsive';
@@ -55,7 +56,7 @@ const EditProductScreen = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const { data: product, isLoading } = useQuery({
-    queryKey: ['product', productId],
+    queryKey: QUERY_KEYS.product(productId),
     queryFn: () => productService.getProductById(productId),
     enabled: !!productId,
   });
@@ -146,7 +147,7 @@ const EditProductScreen = () => {
 
       // Invalidate queries to refresh data in other screens (cart, products list, etc.)
       // This ensures all screens refetch the latest product data
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.productsAll() });
       queryClient.invalidateQueries({ queryKey: ['product', productId] });
 
       // Refetch the product data immediately to ensure UI is updated
@@ -157,7 +158,7 @@ const EditProductScreen = () => {
       });
 
       // Also invalidate products query to refresh products list
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.productsAll() });
 
       setShowSuccessModal(true);
     },

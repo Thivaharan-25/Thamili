@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import { RootStackParamList } from '../../types';
 import { deliveryService, DeliveryStatus } from '../../services/deliveryService';
+import { QUERY_KEYS } from '../../constants/queryKeys';
 import { useAuthStore } from '../../store/authStore';
 import {
   SearchBar,
@@ -145,8 +146,8 @@ const AdminDeliveryScreen = () => {
     mutationFn: ({ scheduleId, status }: { scheduleId: string; status: DeliveryStatus }) =>
       deliveryService.updateDeliverySchedule(scheduleId, { status }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['deliverySchedules'] });
-      queryClient.invalidateQueries({ queryKey: ['allOrders'] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.deliverySchedules() });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.allOrders() });
     },
   });
 
